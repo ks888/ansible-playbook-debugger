@@ -1,1 +1,4 @@
 *.pyc
+build
+dist
+ansible_playbook_debugger.egg-info
