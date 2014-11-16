@@ -1,6 +1,49 @@
 #!/usr/bin/env python
 
-from ansibledebugger import __version__
+import sys
+import tempfile
+
+from ansible import runner
+from ansible import errors
+from ansible.utils import plugins
+from ansible.callbacks import display
+
+from ansibledebugger import action_plugin_wrapper
+from ansibledebugger import utils
+
+
+def main(args):
+    """ wrap existing action plugins, then run ansible-playbook """
+    # add help option here
+
+    dummy_runner = runner.Runner(host_list=[])
+    action_loader = plugins.action_loader
+    action_plugins = list(action_loader.all(dummy_runner))
+
+    wrapper_plugin_dir = tempfile.mkdtemp()
+
+    for action_plugin in action_plugins:
+        module = sys.modules[action_plugin.__module__]
+        utils.replace_plugin(module, action_plugin_wrapper, wrapper_plugin_dir)
+
+    action_loader.add_directory(wrapper_plugin_dir)
+
+    # test
+    import os
+    os.listdir(wrapper_plugin_dir)
+
+    normal_plugin = action_loader.get('normal', runner.Runner(host_list=[]))
+    import inspect
+    print inspect.getsourcefile(normal_plugin.__class__)
+    with open(inspect.getsourcefile(normal_plugin.__class__)) as f:
+        print f.read()
+
+    # call ansible-playbook
+
 
 if __name__ == "__main__":
-    print 'Hello playbook debugger %s!' % __version__
+    try:
+        sys.exit(main(sys.argv[1:]))
+    except errors.AnsibleError, e:
+        display("ERROR: %s" % e, color='red', stderr=True)
+        sys.exit(1)

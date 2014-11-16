@@ -3,7 +3,7 @@
 import os
 import sys
 sys.path.insert(0, os.path.abspath('lib'))
-from setuptools import setup
+from setuptools import setup, find_packages
 
 from ansibledebugger import __version__
 
@@ -16,9 +16,10 @@ setup(
     url='',
     license='GPLv3',
     install_requires=['ansible'],
-    packages=['ansibledebugger'],
+    packages=find_packages('lib'),
     package_dir={'ansibledebugger': 'lib/ansibledebugger'},
     scripts=[
         'bin/ansible-playbook-debugger',
     ],
+    zip_safe=False,
 )
