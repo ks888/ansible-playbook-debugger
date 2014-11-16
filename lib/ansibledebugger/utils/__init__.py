@@ -6,7 +6,7 @@ from ansible import errors
 
 
 def read_module_file(module):
-    """ Read the content of the file to which *module* specifies. """
+    """ Read the content of the file to which *module* object specifies. """
     src_path = inspect.getsourcefile(module)
 
     if os.path.exists(src_path):
