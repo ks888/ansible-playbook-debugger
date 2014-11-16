@@ -28,16 +28,6 @@ def main(args):
 
     action_loader.add_directory(wrapper_plugin_dir)
 
-    # test
-    import os
-    os.listdir(wrapper_plugin_dir)
-
-    normal_plugin = action_loader.get('normal', runner.Runner(host_list=[]))
-    import inspect
-    print inspect.getsourcefile(normal_plugin.__class__)
-    with open(inspect.getsourcefile(normal_plugin.__class__)) as f:
-        print f.read()
-
     # call ansible-playbook
 
 
