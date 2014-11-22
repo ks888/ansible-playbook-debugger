@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+import distutils
+import imp
 import sys
 import tempfile
 
@@ -28,12 +30,21 @@ def main(args):
 
     action_loader.add_directory(wrapper_plugin_dir)
 
-    # call ansible-playbook
-
+    ansibleplaybook_path = distutils.spawn.find_executable("ansible-playbook")
+    if not ansibleplaybook_path:
+        raise errors.AnsibleError("Failed to find 'ansible-playbook' script in PATH")
+    ansibleplaybook = imp.load_source('ansibledebugger.ansiblebin.playbook', ansibleplaybook_path)
+    return ansibleplaybook.main(args)
 
 if __name__ == "__main__":
+    display(" ", log_only=True)
+    display(" ".join(sys.argv), log_only=True)
+    display(" ", log_only=True)
     try:
         sys.exit(main(sys.argv[1:]))
     except errors.AnsibleError, e:
         display("ERROR: %s" % e, color='red', stderr=True)
+        sys.exit(1)
+    except KeyboardInterrupt, ke:
+        display("ERROR: interrupted", color='red', stderr=True)
         sys.exit(1)
