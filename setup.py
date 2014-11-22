@@ -22,6 +22,4 @@ setup(
         'bin/ansible-playbook-debugger',
     ],
     zip_safe=False,
-    test_suite='nose.collector',
-    tests_require=['nose'],
 )
