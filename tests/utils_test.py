@@ -6,7 +6,7 @@ import unittest
 
 from ansible import runner
 from ansible.utils import plugins
-import ansible.runner.action_plugins.normal as normal
+from ansible.runner.action_plugins import normal
 
 from ansibledebugger import action_plugin_wrapper
 from ansibledebugger import utils
@@ -40,5 +40,9 @@ class UtilsTest(unittest.TestCase):
         dummy_runner = runner.Runner(host_list=[])
         normal_plugin = plugins.action_loader.get('normal', dummy_runner)
 
-        self.assertEqual(inspect.getsourcefile(normal_plugin.__class__),
-                         os.path.join(tempdir, 'normal.py'))
+        try:
+            self.assertEqual(inspect.getsourcefile(normal_plugin.__class__),
+                             os.path.join(tempdir, 'normal.py'))
+        finally:
+            reload(plugins)
+            reload(normal)

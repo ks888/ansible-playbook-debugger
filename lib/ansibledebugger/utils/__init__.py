@@ -3,7 +3,7 @@ import inspect
 import os
 
 from ansible import errors
-
+from ansibledebugger.constants import WRAPPED_ACTION_PLUGIN_SUFFIX
 
 def read_module_file(module):
     """ Read the content of the file to which *module* object specifies. """
@@ -31,16 +31,17 @@ def replace_plugin(plugin, plugin_wrapper, replaced_plugin_dir):
     """
     plugin_name = plugin.__name__.split('.')[-1]
     plugin_data = read_module_file(plugin)
-    plugin_file_path = os.path.join(replaced_plugin_dir,
-                                    plugin_name + '_internal.py')
 
-    with open(plugin_file_path, 'w') as file:
+    wrapped_plugin_name = plugin_name + WRAPPED_ACTION_PLUGIN_SUFFIX + '.py'
+    wrapped_plugin_file_path = os.path.join(replaced_plugin_dir,
+                                            wrapped_plugin_name)
+
+    with open(wrapped_plugin_file_path, 'w') as file:
         file.write(plugin_data)
 
-    wrapper_name = plugin_name
+    wrapper_name = plugin_name + '.py'
     wrapper_data = read_module_file(plugin_wrapper)
-    wrapper_plugin_file_path = os.path.join(replaced_plugin_dir,
-                                            wrapper_name + '.py')
+    wrapper_plugin_file_path = os.path.join(replaced_plugin_dir, wrapper_name)
 
     with open(wrapper_plugin_file_path, 'w') as file:
         file.write(wrapper_data)

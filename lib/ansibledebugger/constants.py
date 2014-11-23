@@ -1,0 +1,2 @@
+
+WRAPPED_ACTION_PLUGIN_SUFFIX = '_internal'
