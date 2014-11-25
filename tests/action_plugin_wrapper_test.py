@@ -51,8 +51,8 @@ class ActionPluginWrapperTest(unittest.TestCase):
 
         normal_plugin.run(None, None, None, None, {})
 
-        self.assertEqual(len(normal_plugin.wrapped_plugin._run.mock_calls), 1)
-        self.assertEqual(len(normal_plugin.wrapped_plugin._show_interpreter.mock_calls), 1)
+        self.assertEqual(normal_plugin.wrapped_plugin._run.call_count, 1)
+        self.assertEqual(normal_plugin.wrapped_plugin._show_interpreter.call_count, 1)
 
     @replaced_action_plugin([normal])
     def test_run_redo_if_failed_and_next_action_is_redo(self):
@@ -69,8 +69,8 @@ class ActionPluginWrapperTest(unittest.TestCase):
 
         normal_plugin.run(None, None, None, None, {})
 
-        self.assertEqual(len(normal_plugin.wrapped_plugin._run.mock_calls), 2)
-        self.assertEqual(len(normal_plugin.wrapped_plugin._show_interpreter.mock_calls), 2)
+        self.assertEqual(normal_plugin.wrapped_plugin._run.call_count, 2)
+        self.assertEqual(normal_plugin.wrapped_plugin._show_interpreter.call_count, 2)
 
     @replaced_action_plugin([normal])
     def test_run_rethrow_exception_if_internal_run_throws_it(self):
@@ -100,7 +100,7 @@ class ActionPluginWrapperTest(unittest.TestCase):
         normal_plugin.wrapped_plugin.__class__.run = run_mock
         normal_plugin._run(None, None, None, None, {})
 
-        self.assertEqual(len(normal_plugin.wrapped_plugin.run.mock_calls), 1)
+        self.assertEqual(normal_plugin.wrapped_plugin.run.call_count, 1)
 
     @replaced_action_plugin([normal])
     def test_internal_run_catch_ansible_error(self):
