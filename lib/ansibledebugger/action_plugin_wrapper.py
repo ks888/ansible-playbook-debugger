@@ -1,8 +1,12 @@
 
+from __future__ import absolute_import
+import copy
+
 from ansible.utils import plugins
+from ansible import errors
 
 from ansibledebugger.constants import WRAPPED_ACTION_PLUGIN_SUFFIX
-from ansibledebugger.interpreter import Interpreter
+from ansibledebugger.interpreter import Interpreter, ErrorInfo, NextAction
 
 
 class ActionModule(object):
@@ -19,36 +23,65 @@ class ActionModule(object):
         self.wrapped_plugin = wrapped_plugin
 
     def run(self, conn, tmp_path, module_name, module_args, inject, complex_args=None, **kwargs):
-        returnData = self.wrapped_plugin.run(conn, tmp_path, module_name, module_args,
-                                             inject, complex_args, **kwargs)
-        ignore_errors = inject.get('ignore_errors', False)
+        return_data, error_info = self._run(conn, tmp_path, module_name, module_args,
+                                            inject, complex_args, **kwargs)
+        while error_info.failed:
+            next_action = self._show_interpreter(return_data, error_info)
+            if next_action.result == NextAction.REDO:
+                # update vars
+                return_data, error_info = self._run(conn, tmp_path, module_name, module_args,
+                                                    inject, complex_args, **kwargs)
+            elif next_action.result == NextAction.CONTINUE or next_action.result == NextAction.EXIT:
+                # CONTINUE and EXIT are same so far
+                if error_info.error is not None:
+                    raise error_info.error
+                else:
+                    break
 
-        while self._is_fail(returnData, ignore_errors):
-            Interpreter().cmdloop()
-            # update vars
+        return return_data
 
-            returnData = self.wrapped_plugin.run(conn, tmp_path, module_name, module_args,
-                                                 inject, complex_args, **kwargs)
+    def _run(self, conn, tmp_path, module_name, module_args, inject, complex_args=None, **kwargs):
+        try:
+            return_data = self.wrapped_plugin.run(conn, tmp_path, module_name, module_args,
+                                                  inject, complex_args=None, **kwargs)
+
             ignore_errors = inject.get('ignore_errors', False)
-            ignore_errors = True
+            error_info = self._is_failed(return_data, ignore_errors)
 
-        return returnData
+        except errors.AnsibleError, ae:
+            return_data = None
+            error_info = ErrorInfo(True, errors.AnsibleError.__name__, str(ae), ae)
 
-    def _is_fail(self, returnData, ignore_errors):
-        """ Check the result of task execution. If the result is *unreachable* or
-        *failed*, it returns True. Note that it is unknown whether 'failed_when_result'
+        return return_data, error_info
+
+    def _is_failed(self, return_data, ignore_errors):
+        """ Check the result of task execution. If the result is *failed*,
+        returns True. Note that it is unknown whether 'failed_when_result'
         is True or not, since it is evaluated after the plugin execution, so
         the value is always False here.
         """
-        result = returnData.result
+        error_info = ErrorInfo()
+
+        result = return_data.result
         failed = result.get('failed', False)
         failed_when_result = ('failed_when_result' in result and result['failed_when_result'])
-        error_rc = [result.get('rc', 0) != 0][0]
+        error_rc = (result.get('rc', 0) != 0)
 
         if not ignore_errors and (failed or failed_when_result or error_rc):
-            return True
+            if failed:
+                reason = 'the task returned with a "failed" flag'
+            elif failed_when_result:
+                reason = '"failed_when_result" condition is met'
+            elif error_rc:
+                reason = 'return code is not 0'
+            error_info = ErrorInfo(True, reason, str(return_data.result))
 
-        if not returnData.comm_ok:
-            return True
+        return error_info
 
-        return False
+    def _show_interpreter(self, return_data, error_info):
+        """ Show an interpreter to debug. """
+        return_data_cp = copy.deepcopy(return_data)
+        next_action = NextAction()
+
+        Interpreter(return_data_cp, error_info, next_action).cmdloop()
+        return next_action
