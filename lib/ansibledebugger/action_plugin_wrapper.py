@@ -32,7 +32,7 @@ class ActionModule(object):
             if next_action.result == NextAction.REDO:
                 return_data, error_info = self._run(task_info.conn, task_info.tmp_path,
                                                     task_info.module_name, task_info.module_args,
-                                                    task_info.inject, task_info.complex_args,
+                                                    task_info.vars, task_info.complex_args,
                                                     **kwargs)
 
             elif next_action.result == NextAction.CONTINUE or next_action.result == NextAction.EXIT:

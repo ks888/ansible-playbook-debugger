@@ -1,5 +1,6 @@
 
 import cmd
+import re
 import readline
 import sys
 
@@ -22,17 +23,10 @@ class Interpreter(cmd.Cmd):
             self.intro = " "
             self.cmdloop()
 
-    def do_show_args(self, arg):
-        """Show a module name and its args.
-
-        *module_args* shows key=value style arguments passed to the module.
-        *complex_args* shows more complex arguments like lists and associative
-        arrays. If *args* keyword is used in your task, arguments the *args*
-        keyword contains are assigned to *complex_args*.
-        """
+    def do_show_module_args(self, arg):
+        """Show a module name and its args. If *args* keyword is used in your task, use *show_complex_args* to see the keyword's arguments. """
         print 'module_name: %s' % (self.task_info.module_name)
         print 'module_args: %s' % (self.task_info.module_args)
-        print 'complex_args: %s' % (str(self.task_info.complex_args))
 
     def do_set_module_args(self, arg):
         """Set args to a module. If the arg already exists, it is replaced.
@@ -46,21 +40,25 @@ class Interpreter(cmd.Cmd):
             value = split_arg[1]
 
             module_args = self.task_info.module_args
-            sp_key_eq = ' ' + key + '='
-            if sp_key_eq in module_args:
-                i_value_begin = module_args.find(sp_key_eq) + len(sp_key_eq)
-                i_value_end = module_args.find(' ', i_value_begin)
+            match = re.search(r'(\A| )%s=[^ ](\Z| )' % (key), module_args)
+            if match is not None:
+                index_value_start = match.start()
+                index_value_end = match.end()
 
-                new_module_args = module_args.substring(0, i_value_begin)
-                new_module_args += value
-                new_module_args += module_args.substring(i_value_end)
+                new_module_args = module_args[0:index_value_start]
+                # multiple spaces are better than no space
+                new_module_args += ' %s=%s ' % (key, value)
+                new_module_args += module_args[index_value_end:]
 
                 self.task_info.module_args = new_module_args
-
             else:
-                self.task_info.module_args += sp_key_eq + value
+                self.task_info.module_args += ' %s=%s' % (key, value)
 
             print 'module_args is updated: %s' % (self.task_info.module_args)
+
+    def do_show_complex_args(self, arg):
+        """Show the complex args of a module. Typically complex_args shows more complex arguments like lists and associative arrays."""
+        print 'complex_args: %s' % (str(self.task_info.complex_args))
 
     def do_show_host(self, arg):
         """Show a host info. """
