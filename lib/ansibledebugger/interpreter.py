@@ -6,7 +6,9 @@ import sys
 
 class TaskInfo(object):
     """ Class to describe a target task """
-    def __init__(self, module_name, module_args, vars, complex_args):
+    def __init__(self, conn, tmp_path, module_name, module_args, vars, complex_args):
+        self.conn = conn
+        self.tmp_path = tmp_path
         self.module_name = module_name
         self.module_args = module_args
         self.vars = vars
@@ -57,11 +59,29 @@ class Interpreter(cmd.Cmd):
         *module_args* shows key=value style arguments passed to the module.
         *complex_args* shows more complex arguments like lists and associative
         arrays. If *args* keyword is used in your task, arguments the *args*
-        keyword contains are assigned to *complex_args*. """
-
+        keyword contains are assigned to *complex_args*.
+        """
         print 'module_name: %s' % (self.task_info.module_name)
         print 'module_args: %s' % (self.task_info.module_args)
         print 'complex_args: %s' % (str(self.task_info.complex_args))
+
+    def do_show_host(self, arg):
+        """Show a host info. """
+        print 'hostname: %s' % (self.task_info.vars.get('inventory_hostname', ''))
+
+        groups = self.task_info.vars.get('group_names', [])
+        print 'host\'s groups: %s' % (','.join(groups))
+
+    def do_show_ssh_option(self, arg):
+        """Show options given to ssh command. Not available if a connection type is not ssh.
+        """
+        connection_type = self.task_info.conn.__module__.split('.')[-1]
+        if connection_type == 'ssh':
+            print 'ssh host: %s' % (self.task_info.conn.host)
+            print 'ssh options: %s' % (self.task_info.conn.common_args)
+            print '\nHint: to see the complete ssh command, run ansible with -vvvv option.'
+        else:
+            print 'Not available since the connection type is not ssh'
 
     def do_show_error(self, arg):
         """Show an error info. """

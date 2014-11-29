@@ -26,7 +26,7 @@ class ActionModule(object):
         return_data, error_info = self._run(conn, tmp_path, module_name, module_args,
                                             inject, complex_args, **kwargs)
         while error_info.failed:
-            task_info = TaskInfo(module_name, module_args, inject, complex_args)
+            task_info = TaskInfo(conn, tmp_path, module_name, module_args, inject, complex_args)
             next_action = self._show_interpreter(task_info, return_data, error_info)
             if next_action.result == NextAction.REDO:
                 # update vars
