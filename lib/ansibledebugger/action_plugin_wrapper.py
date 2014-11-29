@@ -6,7 +6,7 @@ from ansible.utils import plugins
 from ansible import errors
 
 from ansibledebugger.constants import WRAPPED_ACTION_PLUGIN_SUFFIX
-from ansibledebugger.interpreter import Interpreter, ErrorInfo, NextAction
+from ansibledebugger.interpreter import Interpreter, TaskInfo, ErrorInfo, NextAction
 
 
 class ActionModule(object):
@@ -26,7 +26,8 @@ class ActionModule(object):
         return_data, error_info = self._run(conn, tmp_path, module_name, module_args,
                                             inject, complex_args, **kwargs)
         while error_info.failed:
-            next_action = self._show_interpreter(return_data, error_info)
+            task_info = TaskInfo(module_name, module_args, inject, complex_args)
+            next_action = self._show_interpreter(task_info, return_data, error_info)
             if next_action.result == NextAction.REDO:
                 # update vars
                 return_data, error_info = self._run(conn, tmp_path, module_name, module_args,
@@ -78,10 +79,10 @@ class ActionModule(object):
 
         return error_info
 
-    def _show_interpreter(self, return_data, error_info):
+    def _show_interpreter(self, task_info, return_data, error_info):
         """ Show an interpreter to debug. """
         return_data_cp = copy.deepcopy(return_data)
         next_action = NextAction()
 
-        Interpreter(return_data_cp, error_info, next_action).cmdloop()
+        Interpreter(task_info, return_data_cp, error_info, next_action).cmdloop()
         return next_action
