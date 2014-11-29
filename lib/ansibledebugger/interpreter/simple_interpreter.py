@@ -3,38 +3,7 @@ import cmd
 import readline
 import sys
 
-
-class TaskInfo(object):
-    """ Class to describe a target task """
-    def __init__(self, conn, tmp_path, module_name, module_args, vars, complex_args):
-        self.conn = conn
-        self.tmp_path = tmp_path
-        self.module_name = module_name
-        self.module_args = module_args
-        self.vars = vars
-        self.complex_args = complex_args
-
-
-class ErrorInfo(object):
-    """ Class to describe the error on a task execution. """
-    def __init__(self, failed=False, reason='', result='', error=None):
-        self.failed = failed
-        self.reason = reason
-        self.result = result
-        self.error = error
-
-
-class NextAction(object):
-    """ The next action after an interpreter's exit. """
-    REDO = 1
-    CONTINUE = 2
-    EXIT = 3
-
-    def __init__(self, result=EXIT):
-        self.result = result
-
-    def set(self, result):
-        self.result = result
+from ansibledebugger.interpreter import NextAction
 
 
 class Interpreter(cmd.Cmd):
@@ -64,6 +33,34 @@ class Interpreter(cmd.Cmd):
         print 'module_name: %s' % (self.task_info.module_name)
         print 'module_args: %s' % (self.task_info.module_args)
         print 'complex_args: %s' % (str(self.task_info.complex_args))
+
+    def do_set_module_args(self, arg):
+        """Set args to a module. If the arg already exists, it is replaced.
+        Usage: set_module_args <key=value>
+        """
+        if arg is None or '=' not in arg[1:-1]:
+            print 'Invalid option. See help for usage.'
+        else:
+            split_arg = arg.split('=')
+            key = split_arg[0]
+            value = split_arg[1]
+
+            module_args = self.task_info.module_args
+            sp_key_eq = ' ' + key + '='
+            if sp_key_eq in module_args:
+                i_value_begin = module_args.find(sp_key_eq) + len(sp_key_eq)
+                i_value_end = module_args.find(' ', i_value_begin)
+
+                new_module_args = module_args.substring(0, i_value_begin)
+                new_module_args += value
+                new_module_args += module_args.substring(i_value_end)
+
+                self.task_info.module_args = new_module_args
+
+            else:
+                self.task_info.module_args += sp_key_eq + value
+
+            print 'module_args is updated: %s' % (self.task_info.module_args)
 
     def do_show_host(self, arg):
         """Show a host info. """
