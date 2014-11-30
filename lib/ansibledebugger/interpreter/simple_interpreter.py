@@ -1,10 +1,13 @@
 
 import cmd
+import copy
+import json
 import re
 import readline
 import sys
 
 from ansibledebugger.interpreter import NextAction
+from ansibledebugger import utils
 
 
 class Interpreter(cmd.Cmd):
@@ -29,7 +32,7 @@ class Interpreter(cmd.Cmd):
         print 'module_args: %s' % (self.task_info.module_args)
 
     def do_set_module_args(self, arg):
-        """Set args to a module. If the arg already exists, it is replaced.
+        """Set a module's args. If the arg already exists, it is replaced.
         Usage: set_module_args <key=value>
         """
         if arg is None or '=' not in arg[1:-1]:
@@ -40,7 +43,7 @@ class Interpreter(cmd.Cmd):
             value = split_arg[1]
 
             module_args = self.task_info.module_args
-            match = re.search(r'(\A| )%s=[^ ](\Z| )' % (key), module_args)
+            match = re.search(r'(\A| )%s=[^ ]+(\Z| )' % (key), module_args)
             if match is not None:
                 index_value_start = match.start()
                 index_value_end = match.end()
@@ -54,11 +57,79 @@ class Interpreter(cmd.Cmd):
             else:
                 self.task_info.module_args += ' %s=%s' % (key, value)
 
-            print 'module_args is updated: %s' % (self.task_info.module_args)
+            print 'updated: %s' % (self.task_info.module_args)
 
     def do_show_complex_args(self, arg):
-        """Show the complex args of a module. Typically complex_args shows more complex arguments like lists and associative arrays."""
+        """Show the complex args of a module.
+
+        complex_args is the arguments *args* keyword contains, and can express more complex
+        data like lists and dicts."""
         print 'complex_args: %s' % (str(self.task_info.complex_args))
+        if arg is not None and arg == 'p':
+            print '...and pretty print'
+            print json.dumps(self.task_info.complex_args, sort_keys=True, indent=4)
+
+    def do_set_complex_args(self, arg):
+        """Set a module's complex args.
+
+        Usage: set_complex_args <key in dot notation> <value>
+
+        *key* expects dot notation, which is useful to set nested element.
+        As the special case, use . as *key* to update the entire complex_args.
+
+        *value* accepts JSON format to set lists and/or dicts as well as simple string.
+        """
+        if arg is None or len(arg.split(' ')) < 2:
+            print 'Invalid option. See help for usage.'
+            return
+
+        split_arg = arg.split(' ')
+        key = split_arg[0]
+        if key == '.':
+            key_list = []
+        else:
+            key_list = Interpreter.dot_str_to_key_list(key)
+            if key_list is None:
+                print 'Failed to interpret the key'
+                return
+
+        try:
+            raw_value = arg[len(key) + 1:]
+            value = json.loads(raw_value)
+            value = utils.json_dict_unicode_to_bytes(value)
+        except ValueError:
+            value = raw_value
+
+        if not isinstance(value, dict) and key == '.':
+            print 'complex_args has to be dict.'
+            return
+
+        new_complex_args = copy.deepcopy(self.task_info.complex_args)
+        parent = None
+        curr = new_complex_args
+        last_key = None
+        for key, expected_type in key_list:
+            if not isinstance(curr, expected_type):
+                print 'Can not access the specified element of complex_args. Invalid key: %s' % str(key)
+                return
+
+            try:
+                parent = curr
+                last_key = key
+                curr = parent[key]
+            except (TypeError, IndexError):
+                print 'Can not access the specified element of complex_args. Invalid key: %s' % str(key)
+                return
+            except KeyError:
+                curr = parent[key] = {}
+
+        if parent is None:
+            new_complex_args = value
+        else:
+            parent[last_key] = value
+        self.task_info.complex_args = new_complex_args
+
+        print 'updated: %s' % (str(self.task_info.complex_args))
 
     def do_show_host(self, arg):
         """Show a host info. """
@@ -95,3 +166,30 @@ class Interpreter(cmd.Cmd):
     def do_exit(self, args):
         self.next_action.set(NextAction.EXIT)
         return True
+
+    @classmethod
+    def dot_str_to_key_list(cls, dot_str):
+        """Convert json accessor string in the dot notation to the list of keys.
+        Each key in the the returned list includes an expected type.
+        """
+        pattern = re.compile(r'\A\.?(\w+)|\A\[(\d+)\]')
+
+        key_list = []
+        match = pattern.search(dot_str)
+        while match is not None:
+            if match.group(1) is not None:
+                # dict key
+                key_list.append((match.group(1), dict))
+            elif match.group(2) is not None:
+                # list key
+                key_list.append((int(match.group(2)), list))
+            else:
+                break
+
+            dot_str = dot_str[match.end():]
+            match = pattern.search(dot_str)
+
+        if dot_str == '':
+            return key_list
+        else:
+            return None

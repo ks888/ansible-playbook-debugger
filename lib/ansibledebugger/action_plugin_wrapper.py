@@ -26,8 +26,8 @@ class ActionModule(object):
     def run(self, conn, tmp_path, module_name, module_args, inject, complex_args=None, **kwargs):
         return_data, error_info = self._run(conn, tmp_path, module_name, module_args,
                                             inject, complex_args, **kwargs)
+        task_info = TaskInfo(conn, tmp_path, module_name, module_args, inject, complex_args)
         while error_info.failed:
-            task_info = TaskInfo(conn, tmp_path, module_name, module_args, inject, complex_args)
             next_action = self._show_interpreter(task_info, return_data, error_info)
             if next_action.result == NextAction.REDO:
                 return_data, error_info = self._run(task_info.conn, task_info.tmp_path,

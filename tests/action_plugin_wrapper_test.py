@@ -115,7 +115,7 @@ class ActionPluginWrapperTest(unittest.TestCase):
 
         self.assertEqual(error_info.failed, True)
         self.assertEqual(error_info.reason, 'AnsibleError')
-        self.assertEqual(error_info.msg, 'ansible error')
+        self.assertEqual(error_info.result, 'ansible error')
 
     @parameterized.expand([
         # (description, ReturnData, ignore_errors, expected failed flag)
