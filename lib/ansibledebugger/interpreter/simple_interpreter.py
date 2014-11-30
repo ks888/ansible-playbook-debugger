@@ -131,6 +131,22 @@ class Interpreter(cmd.Cmd):
 
         print 'updated: %s' % (str(self.task_info.complex_args))
 
+    def do_show_var(self, arg):
+        """Show a variable.
+
+        usage: show_var *variable*
+        """
+        if arg is None or arg == '':
+            print 'Invalid option. See help for usage.'
+        else:
+            value = self.task_info.vars.get(arg, 'Not defined')
+            print '%s: %s' % (arg, value)
+
+    def do_show_all_vars(self, arg):
+        """Show all variables. """
+        for k, v in self.task_info.vars.iteritems():
+            print '%s: %s' % (k, v)
+
     def do_show_host(self, arg):
         """Show a host info. """
         print 'hostname: %s' % (self.task_info.vars.get('inventory_hostname', ''))
