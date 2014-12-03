@@ -60,9 +60,9 @@ class ActionModule(object):
 
     def _is_failed(self, return_data, ignore_errors):
         """ Check the result of task execution. If the result is *failed*,
-        returns True. Note that it is unknown whether 'failed_when_result'
-        is True or not, since it is evaluated after the plugin execution, so
-        the value is always False here.
+        *failed* attribute of returned instance is True. Note that it is
+        unknown whether 'failed_when_result' is True or not, since it is
+        evaluated after the plugin execution, so the value is always False here.
         """
         error_info = ErrorInfo()
 

@@ -6,6 +6,8 @@ import re
 import readline
 import sys
 
+from ansible.playbook.task import Task
+
 from ansibledebugger.interpreter import NextAction
 from ansibledebugger import utils
 
@@ -25,6 +27,56 @@ class Interpreter(cmd.Cmd):
         except KeyboardInterrupt:
             self.intro = " "
             self.cmdloop()
+
+    do_h = cmd.Cmd.do_help
+
+    def do_error(self, arg):
+        """e(error)
+Show an error info.
+* 'reason' is the reason the task failed,
+* 'result' is the result the module returned. If the module
+  throws an expception, 'result' shows the exception.
+"""
+        print 'reason: %s' % (self.error_info.reason)
+        print 'result: %s' % (self.error_info.result)
+
+    do_e = do_error
+
+    def do_list(self, arg):
+        """l(ist)
+Show the info about this task execution.
+* 'module name' is the module name the task executed.
+* 'module args' is the key=value style args of the module.
+* 'complex args' is the arguments *args* keyword contains.
+* 'keyword' is the list of keywords the task contains.
+  Note that the list may not be complete.
+* 'hostname' is the name of a host associated with the task.
+  *delegate_to* keyword is not considered here.
+* 'groups' is the host's groups.
+* 'connection type' is the type of a connection to the host.
+* 'ssh host' is the host to ssh. *delegate_to* keyword is
+  considered.
+* 'ssh options' is the options given to ssh command. Note that
+  the options here may not be complete. Run ansible with -vvvv
+  option to see the full ssh command.
+"""
+        template = '{0:<15} : {1}'
+        print template.format('module name', self.task_info.module_name)
+        print template.format('module args', self.task_info.module_args)
+        print template.format('complex args', self.task_info.complex_args)
+        print template.format('keyword', ', '.join(self.get_keyword_list()))
+
+        print template.format('hostname', self.task_info.vars.get('inventory_hostname', ''))
+        groups = self.task_info.vars.get('group_names', [])
+        print template.format('groups', ','.join(groups))
+
+        connection_type = self.task_info.conn.__module__.split('.')[-1]
+        print template.format('connection type', connection_type)
+        if connection_type == 'ssh':
+            print template.format('ssh host', self.task_info.conn.host)
+            print template.format('ssh options', self.task_info.conn.common_args)
+
+    do_l = do_list
 
     def do_show_module_args(self, arg):
         """Show a module name and its args. If *args* keyword is used in your task, use *show_complex_args* to see the keyword's arguments. """
@@ -182,6 +234,19 @@ class Interpreter(cmd.Cmd):
     def do_exit(self, args):
         self.next_action.set(NextAction.EXIT)
         return True
+
+    def get_keyword_list(self):
+        kw_list = []
+
+        if not hasattr(Task, '__slots__'):
+            return kw_list
+
+        for slot in Task.__slots__:
+            if slot in self.task_info.vars:
+                kw = '%s:%s' % (slot, self.task_info.vars[slot])
+                kw_list.append(kw)
+
+        return kw_list
 
     @classmethod
     def dot_str_to_key_list(cls, dot_str):
