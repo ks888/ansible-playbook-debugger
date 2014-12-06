@@ -1,8 +1,8 @@
 
-from StringIO import StringIO
 from mock import patch
-import unittest
 from nose_parameterized import parameterized
+from StringIO import StringIO
+import unittest
 
 from ansible import runner
 from ansible import utils
@@ -11,20 +11,17 @@ from ansibledebugger.interpreter import ErrorInfo, NextAction, TaskInfo
 from ansibledebugger.interpreter.simple_interpreter import Interpreter
 
 
-def dataset_for_print(func):
-    def inner(*args, **kwargs):
-        module_name = 'test module'
-        module_args = 'ma_k=ma_v'
-        complex_args = {'ca_k': 'ca_v'}
-        complex_args_expect = str(complex_args)
-        vars = {'v_k': 'v_v'}
-        vars_expect = 'v_k: v_v'
+def dataset_for_print():
+    module_name = 'test module'
+    module_args = 'ma_k=ma_v'
+    complex_args = {'ca_k': 'ca_v'}
+    complex_args_expect = str(complex_args)
+    vars = {'v_k': 'v_v'}
+    vars_expect = 'v_k: v_v'
 
-        interpreter = Interpreter(TaskInfo('', '', module_name, module_args, vars, complex_args),
-                                  None, ErrorInfo(), None)
-        func(interpreter, module_name, module_args, complex_args_expect, vars_expect, *args, **kwargs)
-
-    return inner
+    interpreter = Interpreter(TaskInfo('', '', module_name, module_args, vars, complex_args),
+                              None, ErrorInfo(), None)
+    return interpreter, module_name, module_args, complex_args_expect, vars_expect
 
 
 class SimpleInterpreterTest(unittest.TestCase):
@@ -82,8 +79,8 @@ class SimpleInterpreterTest(unittest.TestCase):
         self.assertIn(ssh_port_expect, mock_stdout.getvalue())
 
     @patch('sys.stdout', new_callable=StringIO)
-    @dataset_for_print
-    def test_print_all(self, interpreter, module_name, module_args, complex_args_expect, vars_expect, mock_stdout):
+    def test_print_all(self, mock_stdout):
+        interpreter, module_name, module_args, complex_args_expect, vars_expect = dataset_for_print()
         interpreter.do_p(None)
 
         self.assertIn(module_name, mock_stdout.getvalue())
@@ -92,8 +89,8 @@ class SimpleInterpreterTest(unittest.TestCase):
         self.assertIn(vars_expect, mock_stdout.getvalue())
 
     @patch('sys.stdout', new_callable=StringIO)
-    @dataset_for_print
-    def test_print_module_name(self, interpreter, module_name, module_args, complex_args_expect, vars_expect, mock_stdout):
+    def test_print_module_name(self, mock_stdout):
+        interpreter, module_name, module_args, complex_args_expect, vars_expect = dataset_for_print()
         interpreter.do_p('module_name')
 
         self.assertIn(module_name, mock_stdout.getvalue())
@@ -102,8 +99,8 @@ class SimpleInterpreterTest(unittest.TestCase):
         self.assertNotIn(vars_expect, mock_stdout.getvalue())
 
     @patch('sys.stdout', new_callable=StringIO)
-    @dataset_for_print
-    def test_print_module_args(self, interpreter, module_name, module_args, complex_args_expect, vars_expect, mock_stdout):
+    def test_print_module_args(self, mock_stdout):
+        interpreter, module_name, module_args, complex_args_expect, vars_expect = dataset_for_print()
         interpreter.do_p('module_args')
 
         self.assertNotIn(module_name, mock_stdout.getvalue())
@@ -112,8 +109,8 @@ class SimpleInterpreterTest(unittest.TestCase):
         self.assertNotIn(vars_expect, mock_stdout.getvalue())
 
     @patch('sys.stdout', new_callable=StringIO)
-    @dataset_for_print
-    def test_print_complex_args(self, interpreter, module_name, module_args, complex_args_expect, vars_expect, mock_stdout):
+    def test_print_complex_args(self, mock_stdout):
+        interpreter, module_name, module_args, complex_args_expect, vars_expect = dataset_for_print()
         interpreter.do_p('complex_args')
 
         self.assertNotIn(module_name, mock_stdout.getvalue())
@@ -122,8 +119,8 @@ class SimpleInterpreterTest(unittest.TestCase):
         self.assertNotIn(vars_expect, mock_stdout.getvalue())
 
     @patch('sys.stdout', new_callable=StringIO)
-    @dataset_for_print
-    def test_print_var(self, interpreter, module_name, module_args, complex_args_expect, vars_expect, mock_stdout):
+    def test_print_var(self, mock_stdout):
+        interpreter, module_name, module_args, complex_args_expect, vars_expect = dataset_for_print()
         interpreter.do_p('v_k')
 
         self.assertNotIn(module_name, mock_stdout.getvalue())
