@@ -243,6 +243,73 @@ as well as simple string.
 
         print 'updated: %s' % (str(self.task_info.complex_args))
 
+    def do_del(self, arg):
+        """del module_args|complex_args key
+Delete the argument of the module.
+"""
+        if arg is None or arg == '':
+            print 'Invalid option. See help for usage.'
+            return
+
+        arg_split = arg.split()
+        target = arg_split[0]
+        key = arg_split[1]
+
+        if target == 'module_args':
+            self.del_module_args(key)
+        elif target == 'complex_args':
+            self.del_complex_args(key)
+        else:
+            print 'Invalid option. See help for usage.'
+
+    def del_module_args(self, key):
+        module_args = self.task_info.module_args
+        module_arg_list = map(lambda x: x.split('=', 1), shlex.split(module_args))
+
+        deleted = False
+        for i, (existing_key, _) in enumerate(module_arg_list):
+            if existing_key == key:
+                del module_arg_list[i]
+                print 'deleted'
+                deleted = True
+                break
+
+        if not deleted:
+            print 'module_args does not contain the key %s' % (key)
+
+        new_module_args = ' '.join(map(lambda kv: '%s=%s' % (kv[0], kv[1]), module_arg_list))
+        self.task_info.module_args = new_module_args
+
+    def del_complex_args(self, key):
+        if key == '.':
+            key_list = []
+        else:
+            key_list = Interpreter.dot_str_to_key_list(key)
+            if key_list is None:
+                print 'Failed to interpret the key'
+                return
+
+        new_complex_args = copy.deepcopy(self.task_info.complex_args)
+        parent = None
+        curr = new_complex_args
+        last_key = None
+        for key, expected_type in key_list:
+            parent = curr
+            last_key = key
+            try:
+                curr = curr[key]
+            except (KeyError, TypeError, IndexError):
+                print 'Cannot access the specified element of complex_args. Invalid key: %s' % (key)
+                return
+
+        if parent is None:
+            new_complex_args = {}
+        else:
+            del parent[last_key]
+        print 'deleted'
+
+        self.task_info.complex_args = new_complex_args
+
     def do_set_module_args(self, arg):
         """Set a module's args. If the arg already exists, it is replaced.
         Usage: set_module_args <key=value>
