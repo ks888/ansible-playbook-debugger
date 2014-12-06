@@ -310,162 +310,27 @@ Delete the argument of the module.
 
         self.task_info.complex_args = new_complex_args
 
-    def do_set_module_args(self, arg):
-        """Set a module's args. If the arg already exists, it is replaced.
-        Usage: set_module_args <key=value>
-        """
-        if arg is None or '=' not in arg[1:-1]:
-            print 'Invalid option. See help for usage.'
-        else:
-            split_arg = arg.split('=')
-            key = split_arg[0]
-            value = split_arg[1]
-
-            module_args = self.task_info.module_args
-            match = re.search(r'(\A| )%s=[^ ]+(\Z| )' % (key), module_args)
-            if match is not None:
-                index_value_start = match.start()
-                index_value_end = match.end()
-
-                new_module_args = module_args[0:index_value_start]
-                # multiple spaces are better than no space
-                new_module_args += ' %s=%s ' % (key, value)
-                new_module_args += module_args[index_value_end:]
-
-                self.task_info.module_args = new_module_args
-            else:
-                self.task_info.module_args += ' %s=%s' % (key, value)
-
-            print 'updated: %s' % (self.task_info.module_args)
-
-    def do_show_module_args(self, arg):
-        """Show a module name and its args. If *args* keyword is used in your task, use *show_complex_args* to see the keyword's arguments. """
-        print 'module_name: %s' % (self.task_info.module_name)
-        print 'module_args: %s' % (self.task_info.module_args)
-
-    def do_show_complex_args(self, arg):
-        """Show the complex args of a module.
-
-        complex_args is the arguments *args* keyword contains, and can express more complex
-        data like lists and dicts."""
-        print 'complex_args: %s' % (str(self.task_info.complex_args))
-        if arg is not None and arg == 'p':
-            print '...and pretty print'
-            print json.dumps(self.task_info.complex_args, sort_keys=True, indent=4)
-
-    def do_set_complex_args(self, arg):
-        """Set a module's complex args.
-
-        Usage: set_complex_args <key in dot notation> <value>
-
-        *key* expects dot notation, which is useful to set nested element.
-        As the special case, use . as *key* to update the entire complex_args.
-
-        *value* accepts JSON format to set lists and/or dicts as well as simple string.
-        """
-        if arg is None or len(arg.split(' ')) < 2:
-            print 'Invalid option. See help for usage.'
-            return
-
-        split_arg = arg.split(' ')
-        key = split_arg[0]
-        if key == '.':
-            key_list = []
-        else:
-            key_list = Interpreter.dot_str_to_key_list(key)
-            if key_list is None:
-                print 'Failed to interpret the key'
-                return
-
-        try:
-            raw_value = arg[len(key) + 1:]
-            value = json.loads(raw_value)
-            value = utils.json_dict_unicode_to_bytes(value)
-        except ValueError:
-            value = raw_value
-
-        if not isinstance(value, dict) and key == '.':
-            print 'complex_args has to be dict.'
-            return
-
-        new_complex_args = copy.deepcopy(self.task_info.complex_args)
-        parent = None
-        curr = new_complex_args
-        last_key = None
-        for key, expected_type in key_list:
-            if not isinstance(curr, expected_type):
-                print 'Can not access the specified element of complex_args. Invalid key: %s' % str(key)
-                return
-
-            try:
-                parent = curr
-                last_key = key
-                curr = parent[key]
-            except (TypeError, IndexError):
-                print 'Can not access the specified element of complex_args. Invalid key: %s' % str(key)
-                return
-            except KeyError:
-                curr = parent[key] = {}
-
-        if parent is None:
-            new_complex_args = value
-        else:
-            parent[last_key] = value
-        self.task_info.complex_args = new_complex_args
-
-        print 'updated: %s' % (str(self.task_info.complex_args))
-
-    def do_show_var(self, arg):
-        """Show a variable.
-
-        usage: show_var *variable*
-        """
-        if arg is None or arg == '':
-            print 'Invalid option. See help for usage.'
-        else:
-            value = self.task_info.vars.get(arg, 'Not defined')
-            print '%s: %s' % (arg, value)
-
-    def do_show_all_vars(self, arg):
-        """Show all variables. """
-        for k, v in self.task_info.vars.iteritems():
-            print '%s: %s' % (k, v)
-
-    def do_show_host(self, arg):
-        """Show a host info. """
-        print 'hostname: %s' % (self.task_info.vars.get('inventory_hostname', ''))
-
-        groups = self.task_info.vars.get('group_names', [])
-        print 'host\'s groups: %s' % (','.join(groups))
-
-    def do_show_ssh_option(self, arg):
-        """Show options given to ssh command. Not available if a connection type is not ssh.
-        """
-        connection_type = self.task_info.conn.__module__.split('.')[-1]
-        if connection_type == 'ssh':
-            print 'ssh host: %s' % (self.task_info.conn.host)
-            print 'ssh options: %s' % (self.task_info.conn.common_args)
-            print '\nHint: to see the complete ssh command, run ansible with -vvvv option.'
-        else:
-            print 'Not available since the connection type is not ssh'
-
-    def do_show_error(self, arg):
-        """Show an error info. """
-        print 'reason: %s' % (self.error_info.reason)
-        print 'result: %s' % (self.error_info.result)
-
     def do_redo(self, args):
         self.next_action.set(NextAction.REDO)
         return True
 
+    do_r = do_redo
+
     def do_EOF(self, line):
         sys.stdout.write('\n')
+        self.do_quit(line)
+
+    def do_quit(self, args):
         self.next_action.set(NextAction.EXIT)
         return True
 
-    def do_exit(self, args):
-        self.next_action.set(NextAction.EXIT)
+    do_q = do_quit
+
+    def do_continue(self, arg):
+        self.next_action.set(NextAction.CONTINUE)
         return True
+
+    do_c = do_cont = do_continue
 
     def get_keyword_list(self):
         kw_list = []

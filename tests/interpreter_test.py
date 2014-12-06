@@ -271,6 +271,27 @@ class SimpleInterpreterTest(unittest.TestCase):
         expect = {}
         self.assertEqual(interpreter.task_info.complex_args, expect)
 
+    @patch('sys.stdout', new_callable=StringIO)
+    def test_redo(self, mock_stdout):
+        interpreter = Interpreter(TaskInfo('', '', '', '', None, None), None, ErrorInfo(), NextAction())
+        interpreter.do_r('')
+
+        self.assertEqual(interpreter.next_action.result, NextAction.REDO)
+
+    @patch('sys.stdout', new_callable=StringIO)
+    def test_quit(self, mock_stdout):
+        interpreter = Interpreter(TaskInfo('', '', '', '', None, None), None, ErrorInfo(), NextAction())
+        interpreter.do_q('')
+
+        self.assertEqual(interpreter.next_action.result, NextAction.EXIT)
+
+    @patch('sys.stdout', new_callable=StringIO)
+    def test_continue(self, mock_stdout):
+        interpreter = Interpreter(TaskInfo('', '', '', '', None, None), None, ErrorInfo(), NextAction())
+        interpreter.do_c('')
+
+        self.assertEqual(interpreter.next_action.result, NextAction.CONTINUE)
+
     @parameterized.expand([
         # string in dot notation, expected key list
         ('dict', 'ab', [('ab', dict)]),
