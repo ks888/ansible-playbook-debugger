@@ -131,6 +131,110 @@ class SimpleInterpreterTest(unittest.TestCase):
         self.assertNotIn(complex_args_expect, mock_stdout.getvalue())
         self.assertIn(vars_expect, mock_stdout.getvalue())
 
+    @patch('sys.stdout', new_callable=StringIO)
+    def test_set_module_args_add(self, mock_stdout):
+        module_args = 'key1=v1 key2=v2'
+        interpreter = Interpreter(TaskInfo('', '', '', module_args, None, None),
+                                  None, ErrorInfo(), None)
+
+        key = 'key3'
+        value = 'v3'
+        interpreter.do_set('module_args %s %s' % (key, value))
+
+        expected_kv = '%s %s=%s' % (module_args, key, value)
+        self.assertEqual(expected_kv, interpreter.task_info.module_args)
+
+    @patch('sys.stdout', new_callable=StringIO)
+    def test_set_module_args_replace(self, mock_stdout):
+        module_args = 'key1=v1 key2=v2'
+        interpreter = Interpreter(TaskInfo('', '', '', module_args, None, None),
+                                  None, ErrorInfo(), None)
+
+        key = 'key1'
+        value = 'new_v1'
+        interpreter.do_set('module_args %s %s' % (key, value))
+
+        expected_kv = '%s=%s key2=v2' % (key, value)
+        self.assertEqual(expected_kv, interpreter.task_info.module_args)
+
+    @patch('sys.stdout', new_callable=StringIO)
+    def test_set_module_args_replace_quote(self, mock_stdout):
+        module_args = 'key1=v1 key2=v2'
+        interpreter = Interpreter(TaskInfo('', '', '', module_args, None, None),
+                                  None, ErrorInfo(), None)
+
+        key = 'key1'
+        value = '"new_v1"'
+        interpreter.do_set('module_args %s %s' % (key, value))
+
+        expected_kv = '%s=%s key2=v2' % (key, value)
+        self.assertEqual(expected_kv, interpreter.task_info.module_args)
+
+    @patch('sys.stdout', new_callable=StringIO)
+    def test_set_complex_args_add_sibling(self, mock_stdout):
+        complex_args = {'key1': 'v1'}
+        interpreter = Interpreter(TaskInfo('', '', '', '', None, complex_args),
+                                  None, ErrorInfo(), None)
+
+        key = 'key2'
+        value = 'v2'
+        interpreter.do_set('complex_args %s %s' % (key, value))
+
+        expect = {'key1': 'v1', 'key2': 'v2'}
+        self.assertEqual(interpreter.task_info.complex_args, expect)
+
+    @patch('sys.stdout', new_callable=StringIO)
+    def test_set_complex_args_add_child(self, mock_stdout):
+        complex_args = {'key1': 'v1'}
+        interpreter = Interpreter(TaskInfo('', '', '', '', None, complex_args),
+                                  None, ErrorInfo(), None)
+
+        key = 'key1.key2'
+        value = 'v2'
+        interpreter.do_set('complex_args %s %s' % (key, value))
+
+        expect = {'key1': {'key2': 'v2'} }
+        self.assertEqual(interpreter.task_info.complex_args, expect)
+
+    @patch('sys.stdout', new_callable=StringIO)
+    def test_set_complex_args_add_json_sibling(self, mock_stdout):
+        complex_args = {'key1': 'v1'}
+        interpreter = Interpreter(TaskInfo('', '', '', '', None, complex_args),
+                                  None, ErrorInfo(), None)
+
+        key = 'key1.key2'
+        value = '{"key3": "v3"}'
+        interpreter.do_set('complex_args %s %s' % (key, value))
+
+        expect = {'key1': {'key2': {'key3': 'v3'} } }
+        self.assertEqual(interpreter.task_info.complex_args, expect)
+
+    @patch('sys.stdout', new_callable=StringIO)
+    def test_set_complex_args_list_access(self, mock_stdout):
+        complex_args = {'key1': ['v1', 'v2']}
+        interpreter = Interpreter(TaskInfo('', '', '', '', None, complex_args),
+                                  None, ErrorInfo(), None)
+
+        key = 'key1[1]'
+        value = '{"key2": "v2"}'
+        interpreter.do_set('complex_args %s %s' % (key, value))
+
+        expect = {'key1': ['v1', {'key2': 'v2'}] }
+        self.assertEqual(interpreter.task_info.complex_args, expect)
+
+    @patch('sys.stdout', new_callable=StringIO)
+    def test_set_complex_args_replace_all(self, mock_stdout):
+        complex_args = {'key1': 'v1'}
+        interpreter = Interpreter(TaskInfo('', '', '', '', None, complex_args),
+                                  None, ErrorInfo(), None)
+
+        key = '.'
+        value = '{"key2": "v2"}'
+        interpreter.do_set('complex_args %s %s' % (key, value))
+
+        expect = {'key2': 'v2'}
+        self.assertEqual(interpreter.task_info.complex_args, expect)
+
     @parameterized.expand([
         # string in dot notation, expected key list
         ('dict', 'ab', [('ab', dict)]),

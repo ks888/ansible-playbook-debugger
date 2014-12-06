@@ -5,6 +5,7 @@ import json
 import pprint
 import re
 import readline
+import shlex
 import sys
 
 from ansible.playbook.task import Task
@@ -138,10 +139,109 @@ Pretty print the value of the variable *arg*.
             return pprint.pformat(str)
         return str
 
-    def do_show_module_args(self, arg):
-        """Show a module name and its args. If *args* keyword is used in your task, use *show_complex_args* to see the keyword's arguments. """
-        print 'module_name: %s' % (self.task_info.module_name)
-        print 'module_args: %s' % (self.task_info.module_args)
+    def do_set(self, arg):
+        """set module_args|complex_args key value
+Set the argument of the module.
+
+If the first argument is 'module_args', the key=value style
+args of the module is set.
+
+If the first argument is 'complex_args', arguments *args*
+keyword contains is set. In that case, *key* accepts dot
+notation since complex_args may contain lists or dicts.
+Use . as *key* to update the entire complex_args. Also,
+*value* accepts JSON format to set lists and/or dicts
+as well as simple string.
+"""
+        if arg is None or arg == '':
+            print 'Invalid option. See help for usage.'
+            return
+
+        arg_split = arg.split()
+        target = arg_split[0]
+        key = arg_split[1]
+        index_after_target = arg.find(target) + len(target)
+        index_after_key = arg.find(key, index_after_target) + len(key)
+        value = arg[index_after_key:].strip()
+
+        if target == 'module_args':
+            self.set_module_args(key, value)
+        elif target == 'complex_args':
+            self.set_complex_args(key, value)
+        else:
+            print 'Invalid option. See help for usage.'
+
+    def set_module_args(self, key, value):
+        module_args = self.task_info.module_args
+        module_arg_list = map(lambda x: x.split('=', 1), shlex.split(module_args))
+
+        replaced = False
+        for i, (existing_key, existing_value) in enumerate(module_arg_list):
+            if existing_key == key:
+                module_arg_list[i] = (key, value)
+                replaced = True
+                break
+
+        if not replaced:
+            module_arg_list.append([key, value])
+
+        new_module_args = ' '.join(map(lambda kv: '%s=%s' % (kv[0], kv[1]), module_arg_list))
+        self.task_info.module_args = new_module_args
+
+        print 'updated: %s' % (self.task_info.module_args)
+
+    def set_complex_args(self, key, value):
+        if key == '.':
+            key_list = []
+        else:
+            key_list = Interpreter.dot_str_to_key_list(key)
+            if key_list is None:
+                print 'Failed to interpret the key'
+                return
+
+        try:
+            value = json.loads(value)
+            value = utils.json_dict_unicode_to_bytes(value)
+        except ValueError:
+            pass
+
+        if not isinstance(value, dict) and key == '.':
+            print 'complex_args has to be dict.'
+            return
+
+        new_complex_args = copy.deepcopy(self.task_info.complex_args)
+        parent = None
+        curr = new_complex_args
+        last_key = None
+        for key, expected_type in key_list:
+            if isinstance(curr, dict):
+                parent = curr
+                last_key = key
+                try:
+                    curr = curr[key]
+                except KeyError:
+                    curr = curr[key] = {}
+
+            elif isinstance(curr, list) or isinstance(curr, str):
+                try:
+                    curr = curr[key]
+                except TypeError:
+                    curr = parent[last_key] = {}
+                    curr = curr[key] = {}
+                except IndexError:
+                    print 'Invalid Index: %s' % str(key)
+                    return
+
+                parent = parent[last_key]
+                last_key = key
+
+        if parent is None:
+            new_complex_args = value
+        else:
+            parent[last_key] = value
+        self.task_info.complex_args = new_complex_args
+
+        print 'updated: %s' % (str(self.task_info.complex_args))
 
     def do_set_module_args(self, arg):
         """Set a module's args. If the arg already exists, it is replaced.
@@ -170,6 +270,11 @@ Pretty print the value of the variable *arg*.
                 self.task_info.module_args += ' %s=%s' % (key, value)
 
             print 'updated: %s' % (self.task_info.module_args)
+
+    def do_show_module_args(self, arg):
+        """Show a module name and its args. If *args* keyword is used in your task, use *show_complex_args* to see the keyword's arguments. """
+        print 'module_name: %s' % (self.task_info.module_name)
+        print 'module_args: %s' % (self.task_info.module_args)
 
     def do_show_complex_args(self, arg):
         """Show the complex args of a module.
