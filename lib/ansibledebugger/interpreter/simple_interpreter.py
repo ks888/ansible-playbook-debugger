@@ -48,8 +48,8 @@ Show an error info.
         """l(ist)
 Show the info about this task execution.
 * 'module name' is the module name the task executed.
-* 'module args' is the key=value style args of the module.
-* 'complex args' is the arguments *args* keyword contains.
+* 'module args' is the simple key=value style args of the module.
+* 'complex args' is the module's complex arguments like lists and dicts.
 * 'keyword' is the list of keywords the task contains.
   Note that the list may not be complete.
 * 'hostname' is the name of a host associated with the task.
@@ -85,9 +85,9 @@ Show the info about this task execution.
 Print the value of the variable *arg*.
 
 As the special case, if *arg* is 'module_name', print the
-module name. Also, if 'module_args', print the key=value
-style args of the module, and if 'complex_args', print
-arguments *args* keyword contains.
+module name. Also, if 'module_args', print the simple
+key=value style args of the module, and if 'complex_args',
+print the complex args like lists and dicts.
 
 With no argument, print all the variables and its value.
 """
@@ -146,8 +146,8 @@ Set the argument of the module.
 If the first argument is 'module_args', the key=value style
 args of the module is set.
 
-If the first argument is 'complex_args', arguments *args*
-keyword contains is set. In that case, *key* accepts dot
+If the first argument is 'complex_args', complex arguments
+like lists and dicts is set. In that case, *key* accepts dot
 notation since complex_args may contain lists or dicts.
 Use . as *key* to update the entire complex_args. Also,
 *value* accepts JSON format to set lists and/or dicts
