@@ -2,6 +2,7 @@
 import cmd
 import copy
 import json
+import pprint
 import re
 import readline
 import sys
@@ -77,6 +78,65 @@ Show the info about this task execution.
             print template.format('ssh options', self.task_info.conn.common_args)
 
     do_l = do_list
+
+    def do_print(self, arg, pp=False):
+        """p(rint) [arg]
+Print the value of the variable *arg*.
+
+As the special case, if *arg* is 'module_name', print the
+module name. Also, if 'module_args', print the key=value
+style args of the module, and if 'complex_args', print
+arguments *args* keyword contains.
+
+With no argument, print all the variables and its value.
+"""
+        if arg is None or arg == '':
+            self.print_module_name(arg, pp)
+            self.print_module_args(arg, pp)
+            self.print_complex_args(arg, pp)
+            self.print_all_vars(pp)
+        else:
+            if arg == 'module_name':
+                self.print_module_name(arg, pp)
+            elif arg == 'module_args':
+                self.print_module_args(arg, pp)
+            elif arg == 'complex_args':
+                self.print_complex_args(arg, pp)
+            else:
+                self.print_var(arg, pp)
+
+    do_p = do_print
+
+    def do_pp(self, arg):
+        """pp [arg]
+Pretty print the value of the variable *arg*.
+"""
+        self.do_print(arg, pp=True)
+
+    def print_module_name(self, arg, pp=False):
+        module_name = self.task_info.module_name
+        print 'module_name: %s' % (self.pformat_if_pp(module_name, pp))
+
+    def print_module_args(self, arg, pp=False):
+        module_args = self.task_info.module_args
+        print 'module_args: %s' % (self.pformat_if_pp(module_args, pp))
+
+    def print_complex_args(self, arg, pp=False):
+        complex_args = self.task_info.complex_args
+        print 'complex_args: %s' % (self.pformat_if_pp(complex_args, pp))
+
+    def print_var(self, arg, pp=False):
+        value = self.task_info.vars.get(arg, 'Not defined')
+        print '%s: %s' % (arg, self.pformat_if_pp(value, pp))
+
+    def print_all_vars(self, pp=False):
+        for k, v in self.task_info.vars.iteritems():
+            print '%s: %s' % (k, self.pformat_if_pp(v, pp))
+
+    def pformat_if_pp(self, str, pp):
+        if pp:
+            return pprint.pformat(str)
+        return str
 
     def do_show_module_args(self, arg):
         """Show a module name and its args. If *args* keyword is used in your task, use *show_complex_args* to see the keyword's arguments. """
