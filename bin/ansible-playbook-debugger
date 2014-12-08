@@ -2,8 +2,15 @@
 
 import distutils
 import imp
+import os
 import sys
 import tempfile
+
+# retrieved from bin/ansible-playbook
+local_module_path = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), '..', 'lib')
+)
+sys.path.append(local_module_path)
 
 from ansible import runner
 from ansible import errors
@@ -16,8 +23,6 @@ from ansibledebugger import utils
 
 def main(args):
     """ wrap existing action plugins, then run ansible-playbook """
-    # add help option here
-
     dummy_runner = runner.Runner(host_list=[])
     action_loader = plugins.action_loader
     action_plugins = list(action_loader.all(dummy_runner))
