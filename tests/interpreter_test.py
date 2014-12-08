@@ -271,23 +271,34 @@ class SimpleInterpreterTest(unittest.TestCase):
     @patch('sys.stdout', new_callable=StringIO)
     def test_redo(self, mock_stdout):
         interpreter = Interpreter(TaskInfo('', '', '', '', None, None), None, ErrorInfo(), NextAction())
-        interpreter.do_r('')
+        result = interpreter.do_r('')
 
         self.assertEqual(interpreter.next_action.result, NextAction.REDO)
+        self.assertTrue(result)
+
+    @patch('sys.stdout', new_callable=StringIO)
+    def test_eof(self, mock_stdout):
+        interpreter = Interpreter(TaskInfo('', '', '', '', None, None), None, ErrorInfo(), NextAction())
+        result = interpreter.do_EOF('')
+
+        self.assertEqual(interpreter.next_action.result, NextAction.EXIT)
+        self.assertTrue(result)
 
     @patch('sys.stdout', new_callable=StringIO)
     def test_quit(self, mock_stdout):
         interpreter = Interpreter(TaskInfo('', '', '', '', None, None), None, ErrorInfo(), NextAction())
-        interpreter.do_q('')
+        result = interpreter.do_q('')
 
         self.assertEqual(interpreter.next_action.result, NextAction.EXIT)
+        self.assertTrue(result)
 
     @patch('sys.stdout', new_callable=StringIO)
     def test_continue(self, mock_stdout):
         interpreter = Interpreter(TaskInfo('', '', '', '', None, None), None, ErrorInfo(), NextAction())
-        interpreter.do_c('')
+        result = interpreter.do_c('')
 
         self.assertEqual(interpreter.next_action.result, NextAction.CONTINUE)
+        self.assertTrue(result)
 
     @parameterized.expand([
         # string in dot notation, expected key list

@@ -8,6 +8,7 @@ import readline
 import shlex
 import sys
 
+from ansible.callbacks import display
 from ansible.playbook.task import Task
 
 from ansibledebugger.interpreter import NextAction
@@ -39,8 +40,8 @@ Show an error info.
 * 'result' is the result the module returned. If the module
   throws an expception, 'result' shows the exception.
 """
-        print 'reason: %s' % (self.error_info.reason)
-        print 'result: %s' % (self.error_info.result)
+        display('reason: %s' % (self.error_info.reason))
+        display('result: %s' % (self.error_info.result))
 
     do_e = do_error
 
@@ -63,20 +64,20 @@ Show the info about this task execution.
   option to see the full ssh command.
 """
         template = '{0:<15} : {1}'
-        print template.format('module name', self.task_info.module_name)
-        print template.format('module args', self.task_info.module_args)
-        print template.format('complex args', self.task_info.complex_args)
-        print template.format('keyword', ', '.join(self.get_keyword_list()))
+        display(template.format('module name', self.task_info.module_name))
+        display(template.format('module args', self.task_info.module_args))
+        display(template.format('complex args', self.task_info.complex_args))
+        display(template.format('keyword', ', '.join(self.get_keyword_list())))
 
-        print template.format('hostname', self.task_info.vars.get('inventory_hostname', ''))
+        display(template.format('hostname', self.task_info.vars.get('inventory_hostname', '')))
         groups = self.task_info.vars.get('group_names', [])
-        print template.format('groups', ','.join(groups))
+        display(template.format('groups', ','.join(groups)))
 
         connection_type = self.task_info.conn.__module__.split('.')[-1]
-        print template.format('connection type', connection_type)
+        display(template.format('connection type', connection_type))
         if connection_type == 'ssh':
-            print template.format('ssh host', self.task_info.conn.host)
-            print template.format('ssh options', self.task_info.conn.common_args)
+            display(template.format('ssh host', self.task_info.conn.host))
+            display(template.format('ssh options', self.task_info.conn.common_args))
 
     do_l = do_list
 
@@ -116,23 +117,23 @@ Pretty print the value of the variable *arg*.
 
     def print_module_name(self, arg, pp=False):
         module_name = self.task_info.module_name
-        print 'module_name: %s' % (self.pformat_if_pp(module_name, pp))
+        display('module_name: %s' % (self.pformat_if_pp(module_name, pp)))
 
     def print_module_args(self, arg, pp=False):
         module_args = self.task_info.module_args
-        print 'module_args: %s' % (self.pformat_if_pp(module_args, pp))
+        display('module_args: %s' % (self.pformat_if_pp(module_args, pp)))
 
     def print_complex_args(self, arg, pp=False):
         complex_args = self.task_info.complex_args
-        print 'complex_args: %s' % (self.pformat_if_pp(complex_args, pp))
+        display('complex_args: %s' % (self.pformat_if_pp(complex_args, pp)))
 
     def print_var(self, arg, pp=False):
         value = self.task_info.vars.get(arg, 'Not defined')
-        print '%s: %s' % (arg, self.pformat_if_pp(value, pp))
+        display('%s: %s' % (arg, self.pformat_if_pp(value, pp)))
 
     def print_all_vars(self, pp=False):
         for k, v in self.task_info.vars.iteritems():
-            print '%s: %s' % (k, self.pformat_if_pp(v, pp))
+            display('%s: %s' % (k, self.pformat_if_pp(v, pp)))
 
     def pformat_if_pp(self, str, pp):
         if pp:
@@ -154,7 +155,7 @@ Use . as *key* to update the entire complex_args. Also,
 as well as simple string.
 """
         if arg is None or arg == '':
-            print 'Invalid option. See help for usage.'
+            display('Invalid option. See help for usage.')
             return
 
         arg_split = arg.split()
@@ -169,7 +170,7 @@ as well as simple string.
         elif target == 'complex_args':
             self.set_complex_args(key, value)
         else:
-            print 'Invalid option. See help for usage.'
+            display('Invalid option. See help for usage.')
 
     def set_module_args(self, key, value):
         module_args = self.task_info.module_args
@@ -188,7 +189,7 @@ as well as simple string.
         new_module_args = ' '.join(map(lambda kv: '%s=%s' % (kv[0], kv[1]), module_arg_list))
         self.task_info.module_args = new_module_args
 
-        print 'updated: %s' % (self.task_info.module_args)
+        display('updated: %s' % (self.task_info.module_args))
 
     def set_complex_args(self, key, value):
         if key == '.':
@@ -196,7 +197,7 @@ as well as simple string.
         else:
             key_list = Interpreter.dot_str_to_key_list(key)
             if key_list is None:
-                print 'Failed to interpret the key'
+                display('Failed to interpret the key')
                 return
 
         try:
@@ -206,7 +207,7 @@ as well as simple string.
             pass
 
         if not isinstance(value, dict) and key == '.':
-            print 'complex_args has to be dict.'
+            display('complex_args has to be dict.')
             return
 
         new_complex_args = copy.deepcopy(self.task_info.complex_args)
@@ -229,7 +230,7 @@ as well as simple string.
                     curr = parent[last_key] = {}
                     curr = curr[key] = {}
                 except IndexError:
-                    print 'Invalid Index: %s' % str(key)
+                    display('Invalid Index: %s' % str(key))
                     return
 
                 parent = parent[last_key]
@@ -241,14 +242,14 @@ as well as simple string.
             parent[last_key] = value
         self.task_info.complex_args = new_complex_args
 
-        print 'updated: %s' % (str(self.task_info.complex_args))
+        display('updated: %s' % (str(self.task_info.complex_args)))
 
     def do_del(self, arg):
         """del module_args|complex_args key
 Delete the argument of the module.
 """
         if arg is None or arg == '':
-            print 'Invalid option. See help for usage.'
+            display('Invalid option. See help for usage.')
             return
 
         arg_split = arg.split()
@@ -260,7 +261,7 @@ Delete the argument of the module.
         elif target == 'complex_args':
             self.del_complex_args(key)
         else:
-            print 'Invalid option. See help for usage.'
+            display('Invalid option. See help for usage.')
 
     def del_module_args(self, key):
         module_args = self.task_info.module_args
@@ -270,12 +271,12 @@ Delete the argument of the module.
         for i, (existing_key, _) in enumerate(module_arg_list):
             if existing_key == key:
                 del module_arg_list[i]
-                print 'deleted'
+                display('deleted')
                 deleted = True
                 break
 
         if not deleted:
-            print 'module_args does not contain the key %s' % (key)
+            display('module_args does not contain the key %s' % (key))
 
         new_module_args = ' '.join(map(lambda kv: '%s=%s' % (kv[0], kv[1]), module_arg_list))
         self.task_info.module_args = new_module_args
@@ -286,7 +287,7 @@ Delete the argument of the module.
         else:
             key_list = Interpreter.dot_str_to_key_list(key)
             if key_list is None:
-                print 'Failed to interpret the key'
+                display('Failed to interpret the key')
                 return
 
         new_complex_args = copy.deepcopy(self.task_info.complex_args)
@@ -299,14 +300,14 @@ Delete the argument of the module.
             try:
                 curr = curr[key]
             except (KeyError, TypeError, IndexError):
-                print 'Cannot access the specified element of complex_args. Invalid key: %s' % (key)
+                display('Cannot access the specified element of complex_args. Invalid key: %s' % (key))
                 return
 
         if parent is None:
             new_complex_args = {}
         else:
             del parent[last_key]
-        print 'deleted'
+        display('deleted')
 
         self.task_info.complex_args = new_complex_args
 
@@ -317,8 +318,8 @@ Delete the argument of the module.
     do_r = do_redo
 
     def do_EOF(self, line):
-        sys.stdout.write('\n')
-        self.do_quit(line)
+        display('')
+        return self.do_quit(line)
 
     def do_quit(self, args):
         self.next_action.set(NextAction.EXIT)
