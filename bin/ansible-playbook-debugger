@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import distutils
+import distutils.spawn
 import imp
 import os
 import sys
