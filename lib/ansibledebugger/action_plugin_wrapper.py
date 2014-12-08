@@ -47,7 +47,7 @@ class ActionModule(object):
     def _run(self, conn, tmp_path, module_name, module_args, inject, complex_args=None, **kwargs):
         try:
             return_data = self.wrapped_plugin.run(conn, tmp_path, module_name, module_args,
-                                                  inject, complex_args=None, **kwargs)
+                                                  inject, complex_args, **kwargs)
 
             ignore_errors = inject.get('ignore_errors', False)
             error_info = self._is_failed(return_data, ignore_errors)
