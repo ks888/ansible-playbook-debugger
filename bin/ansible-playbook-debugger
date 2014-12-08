@@ -33,7 +33,7 @@ def main(args):
     ansibleplaybook_path = distutils.spawn.find_executable("ansible-playbook")
     if not ansibleplaybook_path:
         raise errors.AnsibleError("Failed to find 'ansible-playbook' script in PATH")
-    ansibleplaybook = imp.load_source('ansibledebugger.ansiblebin.playbook', ansibleplaybook_path)
+    ansibleplaybook = imp.load_source('ansibledebugger', ansibleplaybook_path)
     return ansibleplaybook.main(args)
 
 if __name__ == "__main__":
