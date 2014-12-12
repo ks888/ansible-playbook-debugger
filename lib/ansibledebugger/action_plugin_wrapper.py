@@ -113,7 +113,6 @@ class ActionModule(object):
 
     def _show_interpreter(self, task_info, return_data, error_info):
         """ Show an interpreter to debug. """
-        return_data_cp = copy.deepcopy(return_data)
         next_action = NextAction()
 
         Interpreter(task_info, return_data_cp, error_info, next_action).cmdloop()
