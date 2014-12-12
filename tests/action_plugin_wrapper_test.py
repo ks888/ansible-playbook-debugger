@@ -9,7 +9,7 @@ from ansible.utils import plugins
 from ansible.runner.action_plugins import normal, synchronize, template
 from ansible.runner.return_data import ReturnData
 
-from ansibledebugger.interpreter import ErrorInfo, NextAction
+from ansibledebugger.interpreter import TaskInfo, ErrorInfo, NextAction
 
 from testutils import replaced_action_plugin
 
@@ -98,7 +98,8 @@ class ActionPluginWrapperTest(unittest.TestCase):
 
         # __dict__ is shared between wrapper and wrapped class, so avoid to touch it
         normal_plugin.wrapped_plugin.__class__.run = run_mock
-        normal_plugin._run(None, None, None, None, {})
+        task_info = TaskInfo(None, None, None, None, {}, None)
+        return_data, error_info = normal_plugin._run(task_info)
 
         self.assertEqual(normal_plugin.wrapped_plugin.run.call_count, 1)
 
@@ -111,7 +112,8 @@ class ActionPluginWrapperTest(unittest.TestCase):
         run_mock.side_effect = errors.AnsibleError("ansible error")
 
         normal_plugin.wrapped_plugin.__class__.run = run_mock
-        return_data, error_info = normal_plugin._run(None, None, None, None, {})
+        task_info = TaskInfo(None, None, None, None, None, None)
+        return_data, error_info = normal_plugin._run(task_info)
 
         self.assertEqual(error_info.failed, True)
         self.assertEqual(error_info.reason, 'AnsibleError')
@@ -119,16 +121,18 @@ class ActionPluginWrapperTest(unittest.TestCase):
 
     @parameterized.expand([
         # (description, ReturnData, ignore_errors, expected failed flag)
-        ("no_error", ReturnData(host='', result={}), False, False),
-        ("failed", ReturnData(host='', result={'failed': True}), False, True),
-        ("failed_ignore_error", ReturnData(host='', result={'failed': True}), True, False),
-        ("rc_is_1", ReturnData(host='', result={'rc': 1}), False, True),
-        ("failed_when_result", ReturnData(host='', result={'failed_when_result': True}), False, True),
+        ("no_error", ReturnData(host='', result={}), False, None, False),
+        ("failed", ReturnData(host='', result={'failed': True}), False, None, True),
+        ("failed_ignore_error", ReturnData(host='', result={'failed': True}), True, None, False),
+        ("rc_is_1", ReturnData(host='', result={'rc': 1}), False, None, True),
+        ("failed_when", ReturnData(host='', result={}), False, '1 == 1', True),
+        ("failed_when_register_result", ReturnData(host='', result={'k': 'v'}), False, "result.k == 'v'", True),
     ])
     @replaced_action_plugin([normal])
-    def test_is_failed(self, _, returnData, ignore_errors, expectedResult):
+    def test_is_failed(self, _, returnData, ignore_errors, failed_when_cond, expectedResult):
         dummy_runner = runner.Runner(host_list=[])
         normal_plugin = plugins.action_loader.get('normal', dummy_runner)
 
-        self.assertEqual(normal_plugin._is_failed(returnData, ignore_errors).failed,
+        task_info = TaskInfo(None, None, None, None, {'register': 'result'}, None)
+        self.assertEqual(normal_plugin._is_failed(returnData, ignore_errors, failed_when_cond, task_info).failed,
                          expectedResult)

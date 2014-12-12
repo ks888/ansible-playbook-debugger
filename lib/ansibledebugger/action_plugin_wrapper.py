@@ -2,7 +2,7 @@
 from __future__ import absolute_import
 import copy
 
-from ansible.utils import plugins
+from ansible.utils import check_conditional, plugins
 from ansible import errors
 
 from ansibledebugger.constants import WRAPPED_ACTION_PLUGIN_SUFFIX
@@ -22,18 +22,16 @@ class ActionModule(object):
         self.__dict__ = wrapped_plugin.__dict__
 
         self.wrapped_plugin = wrapped_plugin
+        self.runner = runner
 
     def run(self, conn, tmp_path, module_name, module_args, inject, complex_args=None, **kwargs):
-        return_data, error_info = self._run(conn, tmp_path, module_name, module_args,
-                                            inject, complex_args, **kwargs)
         task_info = TaskInfo(conn, tmp_path, module_name, module_args, inject, complex_args)
+        return_data, error_info = self._run(task_info, **kwargs)
+
         while error_info.failed:
             next_action = self._show_interpreter(task_info, return_data, error_info)
             if next_action.result == NextAction.REDO:
-                return_data, error_info = self._run(task_info.conn, task_info.tmp_path,
-                                                    task_info.module_name, task_info.module_args,
-                                                    task_info.vars, task_info.complex_args,
-                                                    **kwargs)
+                return_data, error_info = self._run(task_info, **kwargs)
 
             elif next_action.result == NextAction.CONTINUE or next_action.result == NextAction.EXIT:
                 # CONTINUE and EXIT are same so far
@@ -44,13 +42,15 @@ class ActionModule(object):
 
         return return_data
 
-    def _run(self, conn, tmp_path, module_name, module_args, inject, complex_args=None, **kwargs):
+    def _run(self, task_info, **kwargs_for_run):
         try:
-            return_data = self.wrapped_plugin.run(conn, tmp_path, module_name, module_args,
-                                                  inject, complex_args, **kwargs)
+            return_data = self.wrapped_plugin.run(task_info.conn, task_info.tmp_path, task_info.module_name,
+                                                  task_info.module_args, task_info.vars,
+                                                  task_info.complex_args, **kwargs_for_run)
 
-            ignore_errors = inject.get('ignore_errors', False)
-            error_info = self._is_failed(return_data, ignore_errors)
+            ignore_errors = task_info.vars.get('ignore_errors', False)
+            failed_when = task_info.vars.get('failed_when', None)
+            error_info = self._is_failed(return_data, ignore_errors, failed_when, task_info)
 
         except errors.AnsibleError, ae:
             return_data = None
@@ -58,29 +58,58 @@ class ActionModule(object):
 
         return return_data, error_info
 
-    def _is_failed(self, return_data, ignore_errors):
-        """ Check the result of task execution. If the result is *failed*,
-        *failed* attribute of returned instance is True. Note that it is
-        unknown whether 'failed_when_result' is True or not, since it is
-        evaluated after the plugin execution, so the value is always False here.
-        """
+    def _is_failed(self, return_data, ignore_errors, failed_when_cond, task_info):
+        """Check the result of task execution. """
         error_info = ErrorInfo()
 
         result = return_data.result
         failed = result.get('failed', False)
-        failed_when_result = ('failed_when_result' in result and result['failed_when_result'])
         error_rc = (result.get('rc', 0) != 0)
 
-        if not ignore_errors and (failed or failed_when_result or error_rc):
+        if failed_when_cond is not None:
+            failed_when_result, reason = self._check_failed_when(failed_when_cond, task_info, result)
+        else:
+            failed_when_result = False
+
+        if not ignore_errors and (failed or error_rc or failed_when_result):
             if failed:
                 reason = 'the task returned with a "failed" flag'
             elif failed_when_result:
-                reason = '"failed_when_result" condition is met'
+                # reason is already set
+                pass
             elif error_rc:
                 reason = 'return code is not 0'
             error_info = ErrorInfo(True, reason, str(return_data.result))
 
         return error_info
+
+    def _check_failed_when(self, failed_when, task_info, return_data):
+        """Check whether failed when condition is met."""
+        # imitates ansible's Runner class, and should follow the change of the original one.
+        register = task_info.vars.get('register')
+        if register is not None:
+            if 'stdout' in return_data:
+                return_data['stdout_lines'] = return_data['stdout'].splitlines()
+            task_info.vars[register] = return_data
+
+        failed = False
+        reason = None
+
+        # only run the final checks if the async_status has finished,
+        # or if we're not running an async_status check at all
+        if (task_info.module_name == 'async_status' and "finished" in return_data) \
+                or task_info.module_name != 'async_status':
+            if failed_when is not None and 'skipped' not in return_data:
+                try:
+                    failed = check_conditional(failed_when, self.runner.basedir, task_info.vars,
+                                               fail_on_undefined=self.runner.error_on_undefined_vars)
+                    if failed:
+                        reason = 'meet "failed_when" condition'
+                except errors.AnsibleError as e:
+                    failed = True
+                    reason = str(e)
+
+        return failed, reason
 
     def _show_interpreter(self, task_info, return_data, error_info):
         """ Show an interpreter to debug. """
