@@ -16,8 +16,11 @@ from ansibledebugger import utils
 
 
 class Interpreter(cmd.Cmd):
+    prompt = '(Apdb) '  # Ansible Playbook DeBugger
+
     def __init__(self, task_info, return_data, error_info, next_action):
         self.intro = "The task execution failed.\nreason: %s\nresult: %s\n\nNow a playbook debugger is running..." % (error_info.reason, error_info.result)
+
         self.task_info = task_info
         self.return_data = return_data
         self.error_info = error_info
@@ -145,7 +148,8 @@ Pretty print the value of the variable *arg*.
 Set the argument of the module.
 
 If the first argument is 'module_args', the key=value style
-args of the module is set.
+args of the module is set. Use quotes if *value* contains
+space(s).
 
 If the first argument is 'complex_args', complex arguments
 like lists and dicts is set. In that case, *key* accepts dot
@@ -174,20 +178,19 @@ as well as simple string.
 
     def set_module_args(self, key, value):
         module_args = self.task_info.module_args
-        module_arg_list = map(lambda x: x.split('=', 1), shlex.split(module_args))
+        module_arg_list = shlex.split(module_args)
 
         replaced = False
-        for i, (existing_key, existing_value) in enumerate(module_arg_list):
-            if existing_key == key:
-                module_arg_list[i] = (key, value)
+        for i, arg in enumerate(module_arg_list):
+            if '=' in arg and arg.split('=', 1)[0] == key:
+                module_arg_list[i] = '%s=%s' % (key, value)
                 replaced = True
                 break
 
         if not replaced:
-            module_arg_list.append([key, value])
+            module_arg_list.append('%s=%s' % (key, value))
 
-        new_module_args = ' '.join(map(lambda kv: '%s=%s' % (kv[0], kv[1]), module_arg_list))
-        self.task_info.module_args = new_module_args
+        self.task_info.module_args = ' '.join(module_arg_list)
 
         display('updated: %s' % (self.task_info.module_args))
 
@@ -265,11 +268,11 @@ Delete the argument of the module.
 
     def del_module_args(self, key):
         module_args = self.task_info.module_args
-        module_arg_list = map(lambda x: x.split('=', 1), shlex.split(module_args))
+        module_arg_list = shlex.split(module_args)
 
         deleted = False
-        for i, (existing_key, _) in enumerate(module_arg_list):
-            if existing_key == key:
+        for i, arg in enumerate(module_arg_list):
+            if '=' in arg and arg.split('=', 1)[0] == key:
                 del module_arg_list[i]
                 display('deleted')
                 deleted = True
@@ -278,8 +281,7 @@ Delete the argument of the module.
         if not deleted:
             display('module_args does not contain the key %s' % (key))
 
-        new_module_args = ' '.join(map(lambda kv: '%s=%s' % (kv[0], kv[1]), module_arg_list))
-        self.task_info.module_args = new_module_args
+        self.task_info.module_args = ' '.join(module_arg_list)
 
     def del_complex_args(self, key):
         if key == '.':

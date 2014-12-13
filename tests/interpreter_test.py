@@ -168,6 +168,19 @@ class SimpleInterpreterTest(unittest.TestCase):
         self.assertEqual(expected_kv, interpreter.task_info.module_args)
 
     @patch('sys.stdout', new_callable=StringIO)
+    def test_set_module_args_replace_nonkv(self, mock_stdout):
+        module_args = 'shell_command key1=v1 key2=v2'
+        interpreter = Interpreter(TaskInfo('', '', '', module_args, None, None),
+                                  None, ErrorInfo(), None)
+
+        key = 'key1'
+        value = 'new_v1'
+        interpreter.do_set('module_args %s %s' % (key, value))
+
+        expected_kv = 'shell_command %s=%s key2=v2' % (key, value)
+        self.assertEqual(expected_kv, interpreter.task_info.module_args)
+
+    @patch('sys.stdout', new_callable=StringIO)
     def test_set_complex_args_add_sibling(self, mock_stdout):
         complex_args = {'key1': 'v1'}
         interpreter = Interpreter(TaskInfo('', '', '', '', None, complex_args),
