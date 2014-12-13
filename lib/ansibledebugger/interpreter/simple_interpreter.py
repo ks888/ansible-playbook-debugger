@@ -19,7 +19,8 @@ class Interpreter(cmd.Cmd):
     prompt = '(Apdb) '  # Ansible Playbook DeBugger
 
     def __init__(self, task_info, return_data, error_info, next_action):
-        self.intro = "The task execution failed.\nreason: %s\nresult: %s\n\nNow a playbook debugger is running..." % (error_info.reason, error_info.result)
+        result_decoded = str(error_info.result).decode('unicode-escape')
+        self.intro = "The task execution failed.\nreason: %s\nresult: %s\n\nNow a playbook debugger is running..." % (error_info.reason, result_decoded)
 
         self.task_info = task_info
         self.return_data = return_data
@@ -43,8 +44,10 @@ Show an error info.
 * 'result' is the result the module returned. If the module
   throws an expception, 'result' shows the exception.
 """
+        result_decoded = str(self.error_info.result).decode('unicode-escape')
+
         display('reason: %s' % (self.error_info.reason))
-        display('result: %s' % (self.error_info.result))
+        display('result: %s' % (result_decoded))
 
     do_e = do_error
 
