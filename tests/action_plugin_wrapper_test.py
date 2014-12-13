@@ -127,6 +127,7 @@ class ActionPluginWrapperTest(unittest.TestCase):
         ("rc_is_1", ReturnData(host='', result={'rc': 1}), False, None, True),
         ("failed_when", ReturnData(host='', result={}), False, '1 == 1', True),
         ("failed_when_register_result", ReturnData(host='', result={'k': 'v'}), False, "result.k == 'v'", True),
+        ("failed_when_rc_is_1", ReturnData(host='', result={'rc': 1}), False, '0 == 1', False),
     ])
     @replaced_action_plugin([normal])
     def test_is_failed(self, _, returnData, ignore_errors, failed_when_cond, expectedResult):

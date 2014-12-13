@@ -60,10 +60,11 @@ class ActionModule(object):
 
     def _is_failed(self, return_data, ignore_errors, failed_when_cond, task_info):
         """Check the result of task execution. """
-        error_info = ErrorInfo()
+        failed = False
+        reason = None
 
         result = return_data.result
-        failed = result.get('failed', False)
+        failed_flag = result.get('failed', False)
         error_rc = (result.get('rc', 0) != 0)
 
         if failed_when_cond is not None:
@@ -71,17 +72,21 @@ class ActionModule(object):
         else:
             failed_when_result = False
 
-        if not ignore_errors and (failed or error_rc or failed_when_result):
-            if failed:
+        if not ignore_errors:
+            if failed_flag:
+                failed = True
                 reason = 'the task returned with a "failed" flag'
-            elif failed_when_result:
-                # reason is already set
-                pass
-            elif error_rc:
-                reason = 'return code is not 0'
-            error_info = ErrorInfo(True, reason, str(return_data.result))
+            else:
+                if failed_when_cond is not None:
+                    if failed_when_result:
+                        failed = True
+                        # reason is already set
+                else:
+                    if error_rc:
+                        failed = True
+                        reason = 'return code is not 0'
 
-        return error_info
+        return ErrorInfo(failed, reason, str(return_data.result))
 
     def _check_failed_when(self, failed_when, task_info, return_data):
         """Check whether failed when condition is met."""
@@ -115,5 +120,5 @@ class ActionModule(object):
         """ Show an interpreter to debug. """
         next_action = NextAction()
 
-        Interpreter(task_info, return_data_cp, error_info, next_action).cmdloop()
+        Interpreter(task_info, return_data, error_info, next_action).cmdloop()
         return next_action
