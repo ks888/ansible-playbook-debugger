@@ -38,7 +38,7 @@ class Interpreter(cmd.Cmd):
     do_h = cmd.Cmd.do_help
 
     def do_error(self, arg):
-        """e(error)
+        """e(rror)
 Show an error info.
 * 'reason' is the reason the task failed,
 * 'result' is the result the module returned. If the module
