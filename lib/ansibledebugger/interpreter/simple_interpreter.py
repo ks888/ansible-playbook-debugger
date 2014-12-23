@@ -53,7 +53,7 @@ Show an error info.
 
     def do_list(self, arg):
         """l(ist)
-Show the info about this task execution.
+Show the details about this task execution.
 * 'module name' is the module name the task executed.
 * 'module args' is the simple key=value style args of the module.
 * 'complex args' is the module's complex arguments like lists and dicts.
@@ -91,9 +91,9 @@ Show the info about this task execution.
         """p(rint) [arg]
 Print the value of the variable *arg*.
 
-As the special case, if *arg* is 'module_name', print the
-module name. Also, if 'module_args', print the simple
-key=value style args of the module, and if 'complex_args',
+As the special case, if *arg* is `module_name`, print the
+module name. Also, if `module_args`, print the simple
+key=value style args of the module, and if `complex_args`,
 print the complex args like lists and dicts.
 
 With no argument, print all the variables and its value.
@@ -117,7 +117,7 @@ With no argument, print all the variables and its value.
 
     def do_pp(self, arg):
         """pp [arg]
-Pretty print the value of the variable *arg*.
+Same as print command, but output is pretty printed.
 """
         self.do_print(arg, pp=True)
 
@@ -150,16 +150,17 @@ Pretty print the value of the variable *arg*.
         """set module_args|complex_args key value
 Set the argument of the module.
 
-If the first argument is 'module_args', the key=value style
-args of the module is set. Use quotes if *value* contains
+If the first argument is `module_args`, *key*=*value* style
+argument is added to the module's args. If the key already
+exists, the key is updated. Use quotes if *value* contains
 space(s).
 
-If the first argument is 'complex_args', complex arguments
-like lists and dicts is set. In that case, *key* accepts dot
-notation since complex_args may contain lists or dicts.
-Use . as *key* to update the entire complex_args. Also,
-*value* accepts JSON format to set lists and/or dicts
-as well as simple string.
+If the first argument is `complex_args`, *key* and *value*
+are added to module's complex args. *key* specifies the
+location where *value* should be added. *key* accepts dot
+notation to specify the child of lists and/or dicts.
+To update the entire complex_args, use `.` as *key*. *value*
+accepts JSON format as well as simple string.
 """
         if arg is None or arg == '':
             display('Invalid option. See help for usage.')
@@ -252,7 +253,8 @@ as well as simple string.
 
     def do_del(self, arg):
         """del module_args|complex_args key
-Delete the argument of the module.
+Delete the argument of the module. The usage of the command's
+arguments is almost same as set command.
 """
         if arg is None or arg == '':
             display('Invalid option. See help for usage.')
@@ -317,6 +319,8 @@ Delete the argument of the module.
         self.task_info.complex_args = new_complex_args
 
     def do_redo(self, args):
+        """Re-execute the task, and, if no error, continue to run the playbook.
+"""
         self.next_action.set(NextAction.REDO)
         return True
 
@@ -327,12 +331,14 @@ Delete the argument of the module.
         return self.do_quit(line)
 
     def do_quit(self, args):
+        """Quit from the debugger. The playbook execution is aborted."""
         self.next_action.set(NextAction.EXIT)
         return True
 
     do_q = do_quit
 
     def do_continue(self, arg):
+        """Continue without the re-execution of the task."""
         self.next_action.set(NextAction.CONTINUE)
         return True
 
