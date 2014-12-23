@@ -1,4 +1,4 @@
-# Ansible Playbook Debugger
+# ansible-playbook-debugger
 
 A Debugger for Ansible Playbook
 
