@@ -25,8 +25,8 @@ pip install ansible-playbook-debugger
 For the development version:
 
 ```
-git clone https://github.com/ks888/ansible-playbook-debugger XXX
-pip install -e ./ansible-playbook-debugger XXX
+git clone https://github.com/ks888/ansible-playbook-debugger
+pip install -e ./ansible-playbook-debugger
 ```
 
 In this case, any changes to the source code will be reflected immediately.

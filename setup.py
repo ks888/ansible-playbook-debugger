@@ -10,10 +10,10 @@ from ansibledebugger import __version__
 setup(
     name='ansible-playbook-debugger',
     version=__version__,
-    description='Debugger for ansible playbook',
+    description='Debugger for Ansible Playbook',
     author='Kishin Yagami',
     author_email='k.yagami.suou@gmail.com',
-    url='',
+    url='https://github.com/ks888/ansible-playbook-debugger',
     license='GPLv3',
     install_requires=['ansible'],
     packages=find_packages('lib'),
