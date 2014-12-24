@@ -12,7 +12,11 @@ Although `Ansible` is a powerful tool for configuration management, debugging it
 
 Here is a demo which runs a playbook, invokes the debugger (since ping module's argument is wrong), and prints the module's argument.
 
+![Demo 1](http://i.imgur.com/O6vTvAf.gif)
+
 Here is another demo continued from the first one. It deletes the module's wrong argument, sets the right one, re-executes the task, and continues to run the playbook.
+
+![Demo 2](http://i.imgur.com/2YYH7F9.gif)
 
 ## Installation
 
