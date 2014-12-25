@@ -37,7 +37,9 @@ In this case, any changes to the source code will be reflected immediately.
 
 ## Usage
 
-It is easy to use this debugguer: when you call `ansible-playbook` command in a command line, just replace `ansible-playbook` with `ansible-playbook-debugger`. Then, the debugger will be invoked if a task fails. Options available for `ansible-playbook` are also available for `ansible-playbook-debugger`.
+It is easy to use this debugguer: when you call `ansible-playbook` command in a command line, just replace `ansible-playbook` with `ansible-playbook-debugger`. Then, the debugger will be invoked if a task fails.
+
+Options available for `ansible-playbook` are also available for `ansible-playbook-debugger`. `--forks` option is an exception if your target hosts are multiple. In that case, use `--forks=1` to prevent multiple debuggers from invoking.
 
 The terminal logs below are examples to use the debugger for debugging a playbook.
 
