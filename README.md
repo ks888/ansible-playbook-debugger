@@ -4,7 +4,7 @@ A Debugger for Ansible Playbook
 
 ## Description
 
-Although `Ansible` is a powerful tool for configuration management, debugging its playbook is often bothersome. Running a playbook takes time, and if the playbook contains a bug, you may need to rerun it several times. Also, when the playbook fails, you may not get a kind error message.
+Although `Ansible` is a powerful tool for configuration management, debugging its playbook is often bothersome. One of its reasons is an error message from ansible may not include enough information for debug. For example, variables and task's keywords are not included usually. Another reason is the time it takes to run a playbook. For debug, you may need to run the playbook several times to get more details and to see that the bug is fixed.
 
 `ansible-playbook-debugger` is the debugger to facilitate such a bothersome work. When a task fails, the debugger is invoked automatically. Then you can check the module's arguments, variables, keywords, and so on. Furthermore, you can change the module's arguments to fix a bug, and re-execute the task. If the re-execution is successful, the playbook continues to run as if there was no error.
 
@@ -37,15 +37,17 @@ In this case, any changes to the source code will be reflected immediately.
 
 ## Usage
 
-It is easy to use this debugguer: when you call `ansible-playbook` command in a command line, just replace `ansible-playbook` with `ansible-playbook-debugger`. Then, the debugger will be invoked if a task fails.
+It is easy to use this debugguer: when you call `ansible-playbook` command in a command line, just replace `ansible-playbook` with `ansible-playbook-debugger`. `ansible-playbook-debugger` command setups things so that the debugger is invoked if a task fails, and then calls `ansible-playbook` command.
 
-Options available for `ansible-playbook` are also available for `ansible-playbook-debugger`. `--forks` option is an exception if your target hosts are multiple. In that case, use `--forks=1` to prevent multiple debuggers from invoking.
+Options available for `ansible-playbook` are also available for `ansible-playbook-debugger`. `--forks` option is an exception if you setup multiple hosts. In that case, use `--forks=1` to prevent multiple debuggers from invoking.
 
-The terminal logs below are examples to use the debugger for debugging a playbook.
+After the debugger is invoked, you can issue commands for debug. For example, issue `print` command  to check module's args and variables, `set` command to change the module's args, and `redo` command to re-execute the task.
+
+The terminal logs below are examples to use the debugger.
 
 ### Example 1: check and change module's args
 
-Doing the same thing as the demo above.
+Doing the same thing as the demo above. Commands are issued in lines beginning with `(Apdb)`.
 
 ```bash
 ~/src/ansible-playbook-debugger-demo% cat demo1.yml 
@@ -98,9 +100,9 @@ testhost                   : ok=2    changed=0    unreachable=0    failed=0
 ~/src/ansible-playbook-debugger-demo% 
 ```
 
-### Example 2: check and change module's complex args
+### Example 2: check various info
 
-You can change module's complex arguments like lists and dicts.
+Some commands print useful info for debug. `list` command prints the details about this task execution, `print` command (without args) prints module args, variable, keywords, and so on, and `error` command prints an error info. This example quits from the debugger with Ctrl-d.
 
 ```bash
 ~/src/ansible-playbook-debugger-demo% cat demo2.yml 
@@ -116,52 +118,6 @@ You can change module's complex arguments like lists and dicts.
     - name: ping again
       ping:
 
-~/src/ansible-playbook-debugger-demo% ansible-playbook-debugger -i inventory demo2.yml -vv
-
-PLAY [local] ****************************************************************** 
-
-TASK: [ping with invalid module arg] ****************************************** 
-<127.0.0.1> REMOTE_MODULE ping k=v
-The task execution failed.
-reason: the task returned with a "failed" flag
-result: {u'msg': u'unsupported parameter for module: k', u'failed': True}
-
-Now a playbook debugger is running...
-(Apdb) print module_args
-module_args: 
-(Apdb) print complex_args
-complex_args: {'k': 'v'}
-(Apdb) set complex_args k v2
-updated: {'k': 'v2'}
-(Apdb) print complex_args
-complex_args: {'k': 'v2'}
-(Apdb) set complex_args new_k v
-updated: {'k': 'v2', 'new_k': 'v'}
-(Apdb) print complex_args
-complex_args: {'k': 'v2', 'new_k': 'v'}
-(Apdb) set complex_args . {"data": "v"}
-updated: {'data': 'v'}
-(Apdb) print complex_args
-complex_args: {'data': 'v'}
-(Apdb) redo
-<127.0.0.1> REMOTE_MODULE ping data=v
-ok: [testhost] => {"changed": false, "ping": "v"}
-
-TASK: [ping again] ************************************************************ 
-<127.0.0.1> REMOTE_MODULE ping
-ok: [testhost] => {"changed": false, "ping": "pong"}
-
-PLAY RECAP ******************************************************************** 
-testhost                   : ok=2    changed=0    unreachable=0    failed=0   
-
-~/src/ansible-playbook-debugger-demo%  
-```
-
-### Example 3: check various info
-
-Some commands print useful info for debug, including variables, keywords, host info, and so on.
-
-```bash
 ~/src/ansible-playbook-debugger-demo% ansible-playbook-debugger -i inventory demo2.yml -vv
 
 PLAY [local] ****************************************************************** 
