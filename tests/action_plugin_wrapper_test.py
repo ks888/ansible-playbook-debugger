@@ -6,114 +6,113 @@ from mock import Mock
 from ansible import errors
 from ansible import runner
 from ansible.utils import plugins
-from ansible.runner.action_plugins import normal, synchronize, template
 from ansible.runner.return_data import ReturnData
 
+from ansibledebugger import action_plugin_wrapper
 from ansibledebugger.interpreter import TaskInfo, ErrorInfo, NextAction
 
-from testutils import replaced_action_plugin
+from testutils import wrapped_action_plugin
 
 
 class ActionPluginWrapperTest(unittest.TestCase):
-    @replaced_action_plugin([normal])
-    def test_wrapper_can_load_internal_plugin(self):
+    @wrapped_action_plugin(['normal'])
+    def test_wrap_run_is_wrapped(self):
         dummy_runner = runner.Runner(host_list=[])
         normal_plugin = plugins.action_loader.get('normal', dummy_runner)
 
-        parent_classes = normal_plugin.__class__.__bases__
-        parent_class_modules = [cls.__module__.split('.')[-1] for cls in parent_classes]
-        self.assertIn('normal', parent_class_modules)
-        self.assertIn('normal_internal', parent_class_modules)
-        self.assertIn('runner', normal_plugin.__dict__)
+        self.assertIsNotNone(normal_plugin.run.func_closure)
+        self.assertTrue(hasattr(normal_plugin.run.func_closure[0].cell_contents, '__call__'))
 
-    @replaced_action_plugin([synchronize, template])
-    def test_wrapper_can_delegate_attr_if_not_defined(self):
+    @wrapped_action_plugin(['normal'])
+    def test_wrap_watch_is_called(self):
         dummy_runner = runner.Runner(host_list=[])
-        sync_plugin = plugins.action_loader.get('synchronize', dummy_runner)
-        template_plugin = plugins.action_loader.get('template', dummy_runner)
+        normal_plugin = plugins.action_loader.get('normal', dummy_runner)
 
-        self.assertTrue(hasattr(sync_plugin, 'setup'), 'sync plugin has setup attr')
-        self.assertTrue(hasattr(template_plugin, 'TRANSFERS_FILES'),
-                        'template plugin has TRANSFERS_FILES attr')
+        watch_mock = Mock(name="watch_mock")
+        action_plugin_wrapper.ActionPluginWrapper._watch = watch_mock
 
-    @replaced_action_plugin([normal])
-    def test_run_call_interpreter_if_failed(self):
+        normal_plugin.run()
+
+        self.assertEqual(action_plugin_wrapper.ActionPluginWrapper._watch.call_count, 1)
+
+    @wrapped_action_plugin(['normal'])
+    def test_watch_call_interpreter_if_failed(self):
         dummy_runner = runner.Runner(host_list=[])
         normal_plugin = plugins.action_loader.get('normal', dummy_runner)
 
         internal_run_mock = Mock(name="internal_run_mock")
         internal_run_mock.return_value = (None, ErrorInfo(failed=True))
-        normal_plugin._run = internal_run_mock
+        action_plugin_wrapper.ActionPluginWrapper._run = internal_run_mock
 
         show_interpreter_mock = Mock(name="show_interpreter_mock")
         show_interpreter_mock.return_value = NextAction(NextAction.EXIT)
-        normal_plugin._show_interpreter = show_interpreter_mock
+        action_plugin_wrapper.ActionPluginWrapper._show_interpreter = show_interpreter_mock
 
         normal_plugin.run(None, None, None, None, {})
 
-        self.assertEqual(normal_plugin.wrapped_plugin._run.call_count, 1)
-        self.assertEqual(normal_plugin.wrapped_plugin._show_interpreter.call_count, 1)
+        self.assertEqual(action_plugin_wrapper.ActionPluginWrapper._run.call_count, 1)
+        self.assertEqual(action_plugin_wrapper.ActionPluginWrapper._show_interpreter.call_count, 1)
 
-    @replaced_action_plugin([normal])
-    def test_run_redo_if_failed_and_next_action_is_redo(self):
+    @wrapped_action_plugin(['normal'])
+    def test_watch_redo_if_failed_and_next_action_is_redo(self):
         dummy_runner = runner.Runner(host_list=[])
         normal_plugin = plugins.action_loader.get('normal', dummy_runner)
 
         internal_run_mock = Mock(name="internal_run_mock")
         internal_run_mock.return_value = (None, ErrorInfo(failed=True))
-        normal_plugin._run = internal_run_mock
+        action_plugin_wrapper.ActionPluginWrapper._run = internal_run_mock
 
         show_interpreter_mock = Mock(name="show_interpreter_mock",
                                      side_effect=[NextAction(NextAction.REDO), NextAction(NextAction.EXIT)])
-        normal_plugin._show_interpreter = show_interpreter_mock
+        action_plugin_wrapper.ActionPluginWrapper._show_interpreter = show_interpreter_mock
 
         normal_plugin.run(None, None, None, None, {})
 
-        self.assertEqual(normal_plugin.wrapped_plugin._run.call_count, 2)
-        self.assertEqual(normal_plugin.wrapped_plugin._show_interpreter.call_count, 2)
+        self.assertEqual(action_plugin_wrapper.ActionPluginWrapper._run.call_count, 2)
+        self.assertEqual(action_plugin_wrapper.ActionPluginWrapper._show_interpreter.call_count, 2)
 
-    @replaced_action_plugin([normal])
-    def test_run_rethrow_exception_if_internal_run_throws_it(self):
+    @wrapped_action_plugin(['normal'])
+    def test_watch_rethrow_exception_if_internal_run_throws_it(self):
         dummy_runner = runner.Runner(host_list=[])
         normal_plugin = plugins.action_loader.get('normal', dummy_runner)
 
         internal_run_mock = Mock(name="internal_run_mock")
         internal_run_mock.return_value = (None, ErrorInfo(failed=True, error=errors.AnsibleError('')))
-        normal_plugin._run = internal_run_mock
+        action_plugin_wrapper.ActionPluginWrapper._run = internal_run_mock
 
         show_interpreter_mock = Mock(name="show_interpreter_mock")
         show_interpreter_mock.return_value = NextAction(NextAction.EXIT)
-        normal_plugin._show_interpreter = show_interpreter_mock
+        action_plugin_wrapper.ActionPluginWrapper._show_interpreter = show_interpreter_mock
 
         with self.assertRaises(errors.AnsibleError):
             normal_plugin.run(None, None, None, None, {})
 
-    @replaced_action_plugin([normal])
-    def test_internal_run_exec_wrapped_plugin(self):
+    @wrapped_action_plugin(['normal'])
+    def test_private_run_exec_run_inner(self):
         dummy_runner = runner.Runner(host_list=[])
         normal_plugin = plugins.action_loader.get('normal', dummy_runner)
+        wrapper = action_plugin_wrapper.ActionPluginWrapper()
 
-        run_mock = Mock(name="run_mock")
-        run_mock.return_value = ReturnData(host='', result={})
+        run_inner_mock = Mock(name="run_inner_mock")
+        run_inner_mock.return_value = ReturnData(host='', result={})
 
-        # __dict__ is shared between wrapper and wrapped class, so avoid to touch it
-        normal_plugin.wrapped_plugin.__class__.run = run_mock
         task_info = TaskInfo(None, None, None, None, {}, None)
-        return_data, error_info = normal_plugin._run(task_info)
+        return_data, error_info = wrapper._run(run_inner_mock, normal_plugin, task_info)
 
-        self.assertEqual(normal_plugin.wrapped_plugin.run.call_count, 1)
+        self.assertEqual(run_inner_mock.call_count, 1)
+        self.assertEqual(error_info.failed, False)
 
-    @replaced_action_plugin([normal])
-    def test_internal_run_catch_ansible_error(self):
+    @wrapped_action_plugin(['normal'])
+    def test_private_run_catch_ansible_error(self):
         dummy_runner = runner.Runner(host_list=[])
         normal_plugin = plugins.action_loader.get('normal', dummy_runner)
+        wrapper = action_plugin_wrapper.ActionPluginWrapper()
 
-        run_mock = Mock(name="run_mock")
-        run_mock.side_effect = errors.AnsibleError("ansible error")
+        run_inner_mock = Mock(name="run_inner_mock")
+        run_inner_mock.side_effect = errors.AnsibleError("ansible error")
 
-        normal_plugin.wrapped_plugin.__class__.run = run_mock
         task_info = TaskInfo(None, None, None, None, None, None)
-        return_data, error_info = normal_plugin._run(task_info)
+        return_data, error_info = wrapper._run(run_inner_mock, normal_plugin, task_info)
 
         self.assertEqual(error_info.failed, True)
         self.assertEqual(error_info.reason, 'AnsibleError')
@@ -121,19 +120,14 @@ class ActionPluginWrapperTest(unittest.TestCase):
 
     @parameterized.expand([
         # (description, ReturnData, ignore_errors, expected failed flag)
-        ("no_error", ReturnData(host='', result={}), False, None, False),
-        ("failed", ReturnData(host='', result={'failed': True}), False, None, True),
-        ("failed_ignore_error", ReturnData(host='', result={'failed': True}), True, None, False),
-        ("rc_is_1", ReturnData(host='', result={'rc': 1}), False, None, True),
-        ("failed_when", ReturnData(host='', result={}), False, '1 == 1', True),
-        ("failed_when_register_result", ReturnData(host='', result={'k': 'v'}), False, "result.k == 'v'", True),
-        ("failed_when_rc_is_1", ReturnData(host='', result={'rc': 1}), False, '0 == 1', False),
+        ("no_error", ReturnData(host='', result={}), False, False),
+        ("failed", ReturnData(host='', result={'failed': True}), False, True),
+        ("failed_ignore_error", ReturnData(host='', result={'failed': True}), True, False),
+        ("rc_is_1", ReturnData(host='', result={'rc': 1}), False, True),
     ])
-    @replaced_action_plugin([normal])
-    def test_is_failed(self, _, returnData, ignore_errors, failed_when_cond, expectedResult):
-        dummy_runner = runner.Runner(host_list=[])
-        normal_plugin = plugins.action_loader.get('normal', dummy_runner)
-
+    def test_is_failed(self, _, returnData, ignore_errors, expectedResult):
+        wrapper = action_plugin_wrapper.ActionPluginWrapper()
         task_info = TaskInfo(None, None, None, None, {'register': 'result'}, None)
-        self.assertEqual(normal_plugin._is_failed(returnData, ignore_errors, failed_when_cond, task_info).failed,
+
+        self.assertEqual(wrapper._is_failed(returnData, ignore_errors, task_info).failed,
                          expectedResult)

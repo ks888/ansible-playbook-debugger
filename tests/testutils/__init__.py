@@ -1,28 +1,27 @@
 
-import tempfile
 from functools import wraps
 
+from ansible import runner
 from ansible.utils import plugins
 
 from ansibledebugger import action_plugin_wrapper
-from ansibledebugger import utils
 
 
-def replaced_action_plugin(replace_plugin_list=[]):
-    def replace(func):
+def wrapped_action_plugin(plugin_list=[]):
+    def wrapper(func):
         @wraps(func)
         def inner(*args, **kwargs):
-            tempdir = tempfile.mkdtemp()
-            for plugin in replace_plugin_list:
-                utils.replace_plugin(plugin, action_plugin_wrapper, tempdir)
-            plugins.action_loader.add_directory(tempdir)
+            reload(plugins)  # flush past wrappers
 
-            try:
-                func(*args, **kwargs)
-            finally:
-                reload(plugins)
-                for plugin in replace_plugin_list:
-                    reload(plugin)
+            dummy_runner = runner.Runner(host_list=[])
+            for plugin in plugin_list:
+                action_module = plugins.action_loader.get(plugin, dummy_runner)
+
+                wrapper = action_plugin_wrapper.ActionPluginWrapper()
+                wrapper.wrap(action_module.__class__)
+                action_module.__class__
+
+            func(*args, **kwargs)
 
         return inner
-    return replace
+    return wrapper

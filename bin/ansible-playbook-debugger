@@ -22,18 +22,14 @@ from ansibledebugger import utils
 
 
 def main(args):
-    """ wrap existing action plugins, then run ansible-playbook """
+    """Wrap some funcs so that a debugger is invoked, then run ansible-playbook"""
     dummy_runner = runner.Runner(host_list=[])
     action_loader = plugins.action_loader
     action_plugins = list(action_loader.all(dummy_runner))
 
-    wrapper_plugin_dir = tempfile.mkdtemp()
-
     for action_plugin in action_plugins:
-        module = sys.modules[action_plugin.__module__]
-        utils.replace_plugin(module, action_plugin_wrapper, wrapper_plugin_dir)
-
-    action_loader.add_directory(wrapper_plugin_dir)
+        wrapper = action_plugin_wrapper.ActionPluginWrapper()
+        wrapper.wrap(action_plugin.__class__)
 
     ansibleplaybook_path = distutils.spawn.find_executable("ansible-playbook")
     if not ansibleplaybook_path:

@@ -1,2 +1,1 @@
-
-WRAPPED_ACTION_PLUGIN_SUFFIX = '_internal'
+# No contents so far
