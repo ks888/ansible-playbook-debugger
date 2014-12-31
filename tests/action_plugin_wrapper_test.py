@@ -96,7 +96,7 @@ class ActionPluginWrapperTest(unittest.TestCase):
         run_inner_mock = Mock(name="run_inner_mock")
         run_inner_mock.return_value = ReturnData(host='', result={})
 
-        task_info = TaskInfo(None, None, None, None, {}, None)
+        task_info = TaskInfo(None, None, {}, None, conn=None, tmp_path=None)
         return_data, error_info = wrapper._run(run_inner_mock, normal_plugin, task_info)
 
         self.assertEqual(run_inner_mock.call_count, 1)
@@ -111,7 +111,7 @@ class ActionPluginWrapperTest(unittest.TestCase):
         run_inner_mock = Mock(name="run_inner_mock")
         run_inner_mock.side_effect = errors.AnsibleError("ansible error")
 
-        task_info = TaskInfo(None, None, None, None, None, None)
+        task_info = TaskInfo(None, None, None, None, conn=None, tmp_path=None)
         return_data, error_info = wrapper._run(run_inner_mock, normal_plugin, task_info)
 
         self.assertEqual(error_info.failed, True)
@@ -127,7 +127,7 @@ class ActionPluginWrapperTest(unittest.TestCase):
     ])
     def test_is_failed(self, _, returnData, ignore_errors, expectedResult):
         wrapper = action_plugin_wrapper.ActionPluginWrapper()
-        task_info = TaskInfo(None, None, None, None, {'register': 'result'}, None)
+        task_info = TaskInfo(None, None, {'register': 'result'}, None)
 
         self.assertEqual(wrapper._is_failed(returnData, ignore_errors, task_info).failed,
                          expectedResult)

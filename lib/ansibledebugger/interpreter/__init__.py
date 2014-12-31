@@ -2,13 +2,13 @@
 
 class TaskInfo(object):
     """ Class to describe a target task """
-    def __init__(self, conn, tmp_path, module_name, module_args, vars, complex_args):
-        self.conn = conn
-        self.tmp_path = tmp_path
+    def __init__(self, module_name, module_args, vars, complex_args, **kwargs):
         self.module_name = module_name
         self.module_args = module_args
         self.vars = vars
         self.complex_args = complex_args
+        for key, value in kwargs.items():
+            setattr(self, key, value)
 
 
 class ErrorInfo(object):

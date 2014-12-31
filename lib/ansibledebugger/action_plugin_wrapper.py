@@ -24,7 +24,7 @@ class ActionPluginWrapper(object):
 
     def _watch(self, run_inner, self_inner, conn, tmp_path, module_name, module_args, inject, complex_args=None, **kwargs):
         """execute run() method, then check its result"""
-        task_info = TaskInfo(conn, tmp_path, module_name, module_args, inject, complex_args)
+        task_info = TaskInfo(module_name, module_args, inject, complex_args, conn=conn, tmp_path=tmp_path)
         return_data, error_info = self._run(run_inner, self_inner, task_info, **kwargs)
 
         while error_info.failed:

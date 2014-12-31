@@ -11,7 +11,7 @@ from ansibledebugger.interpreter import ErrorInfo, NextAction, TaskInfo
 from ansibledebugger.interpreter.simple_interpreter import Interpreter
 
 
-def dataset_for_print():
+def dataset():
     module_name = 'test module'
     module_args = 'ma_k=ma_v'
     complex_args = {'ca_k': 'ca_v'}
@@ -19,7 +19,7 @@ def dataset_for_print():
     vars = {'v_k': 'v_v'}
     vars_expect = 'v_k: v_v'
 
-    interpreter = Interpreter(TaskInfo('', '', module_name, module_args, vars, complex_args),
+    interpreter = Interpreter(TaskInfo(module_name, module_args, vars, complex_args),
                               None, ErrorInfo(), None)
     return interpreter, module_name, module_args, complex_args_expect, vars_expect
 
@@ -64,7 +64,7 @@ class SimpleInterpreterTest(unittest.TestCase):
         conn = utils.plugins.connection_loader.get(connection_type, dummy_runner, ssh_host, ssh_port, '', '', '')
         conn.connect()
 
-        interpreter = Interpreter(TaskInfo(conn, '', module_name, module_args, vars, complex_args),
+        interpreter = Interpreter(TaskInfo(module_name, module_args, vars, complex_args, conn=conn, tmp_path=''),
                                   None, ErrorInfo(), None)
         interpreter.do_l(None)
 
@@ -80,7 +80,7 @@ class SimpleInterpreterTest(unittest.TestCase):
 
     @patch('sys.stdout', new_callable=StringIO)
     def test_print_all(self, mock_stdout):
-        interpreter, module_name, module_args, complex_args_expect, vars_expect = dataset_for_print()
+        interpreter, module_name, module_args, complex_args_expect, vars_expect = dataset()
         interpreter.do_p(None)
 
         self.assertIn(module_name, mock_stdout.getvalue())
@@ -90,7 +90,7 @@ class SimpleInterpreterTest(unittest.TestCase):
 
     @patch('sys.stdout', new_callable=StringIO)
     def test_print_module_name(self, mock_stdout):
-        interpreter, module_name, module_args, complex_args_expect, vars_expect = dataset_for_print()
+        interpreter, module_name, module_args, complex_args_expect, vars_expect = dataset()
         interpreter.do_p('module_name')
 
         self.assertIn(module_name, mock_stdout.getvalue())
@@ -100,7 +100,7 @@ class SimpleInterpreterTest(unittest.TestCase):
 
     @patch('sys.stdout', new_callable=StringIO)
     def test_print_module_args(self, mock_stdout):
-        interpreter, module_name, module_args, complex_args_expect, vars_expect = dataset_for_print()
+        interpreter, module_name, module_args, complex_args_expect, vars_expect = dataset()
         interpreter.do_p('module_args')
 
         self.assertNotIn(module_name, mock_stdout.getvalue())
@@ -110,7 +110,7 @@ class SimpleInterpreterTest(unittest.TestCase):
 
     @patch('sys.stdout', new_callable=StringIO)
     def test_print_complex_args(self, mock_stdout):
-        interpreter, module_name, module_args, complex_args_expect, vars_expect = dataset_for_print()
+        interpreter, module_name, module_args, complex_args_expect, vars_expect = dataset()
         interpreter.do_p('complex_args')
 
         self.assertNotIn(module_name, mock_stdout.getvalue())
@@ -120,7 +120,7 @@ class SimpleInterpreterTest(unittest.TestCase):
 
     @patch('sys.stdout', new_callable=StringIO)
     def test_print_var(self, mock_stdout):
-        interpreter, module_name, module_args, complex_args_expect, vars_expect = dataset_for_print()
+        interpreter, module_name, module_args, complex_args_expect, vars_expect = dataset()
         interpreter.do_p('v_k')
 
         self.assertNotIn(module_name, mock_stdout.getvalue())
@@ -131,7 +131,7 @@ class SimpleInterpreterTest(unittest.TestCase):
     @patch('sys.stdout', new_callable=StringIO)
     def test_set_module_args_add(self, mock_stdout):
         module_args = 'key1=v1 key2=v2'
-        interpreter = Interpreter(TaskInfo('', '', '', module_args, None, None),
+        interpreter = Interpreter(TaskInfo('', module_args, None, None),
                                   None, ErrorInfo(), None)
 
         key = 'key3'
@@ -144,7 +144,7 @@ class SimpleInterpreterTest(unittest.TestCase):
     @patch('sys.stdout', new_callable=StringIO)
     def test_set_module_args_replace(self, mock_stdout):
         module_args = 'key1=v1 key2=v2'
-        interpreter = Interpreter(TaskInfo('', '', '', module_args, None, None),
+        interpreter = Interpreter(TaskInfo('', module_args, None, None),
                                   None, ErrorInfo(), None)
 
         key = 'key1'
@@ -157,7 +157,7 @@ class SimpleInterpreterTest(unittest.TestCase):
     @patch('sys.stdout', new_callable=StringIO)
     def test_set_module_args_replace_quote(self, mock_stdout):
         module_args = 'key1=v1 key2=v2'
-        interpreter = Interpreter(TaskInfo('', '', '', module_args, None, None),
+        interpreter = Interpreter(TaskInfo('', module_args, None, None),
                                   None, ErrorInfo(), None)
 
         key = 'key1'
@@ -170,7 +170,7 @@ class SimpleInterpreterTest(unittest.TestCase):
     @patch('sys.stdout', new_callable=StringIO)
     def test_set_module_args_replace_nonkv(self, mock_stdout):
         module_args = 'shell_command key1=v1 key2=v2'
-        interpreter = Interpreter(TaskInfo('', '', '', module_args, None, None),
+        interpreter = Interpreter(TaskInfo('', module_args, None, None),
                                   None, ErrorInfo(), None)
 
         key = 'key1'
@@ -183,7 +183,7 @@ class SimpleInterpreterTest(unittest.TestCase):
     @patch('sys.stdout', new_callable=StringIO)
     def test_set_complex_args_add_sibling(self, mock_stdout):
         complex_args = {'key1': 'v1'}
-        interpreter = Interpreter(TaskInfo('', '', '', '', None, complex_args),
+        interpreter = Interpreter(TaskInfo('', '', None, complex_args),
                                   None, ErrorInfo(), None)
 
         key = 'key2'
@@ -196,7 +196,7 @@ class SimpleInterpreterTest(unittest.TestCase):
     @patch('sys.stdout', new_callable=StringIO)
     def test_set_complex_args_add_child(self, mock_stdout):
         complex_args = {'key1': 'v1'}
-        interpreter = Interpreter(TaskInfo('', '', '', '', None, complex_args),
+        interpreter = Interpreter(TaskInfo('', '', None, complex_args),
                                   None, ErrorInfo(), None)
 
         key = 'key1.key2'
@@ -209,7 +209,7 @@ class SimpleInterpreterTest(unittest.TestCase):
     @patch('sys.stdout', new_callable=StringIO)
     def test_set_complex_args_add_json_sibling(self, mock_stdout):
         complex_args = {'key1': 'v1'}
-        interpreter = Interpreter(TaskInfo('', '', '', '', None, complex_args),
+        interpreter = Interpreter(TaskInfo('', '', None, complex_args),
                                   None, ErrorInfo(), None)
 
         key = 'key1.key2'
@@ -222,7 +222,7 @@ class SimpleInterpreterTest(unittest.TestCase):
     @patch('sys.stdout', new_callable=StringIO)
     def test_set_complex_args_list_access(self, mock_stdout):
         complex_args = {'key1': ['v1', 'v2']}
-        interpreter = Interpreter(TaskInfo('', '', '', '', None, complex_args),
+        interpreter = Interpreter(TaskInfo('', '', None, complex_args),
                                   None, ErrorInfo(), None)
 
         key = 'key1[1]'
@@ -235,7 +235,7 @@ class SimpleInterpreterTest(unittest.TestCase):
     @patch('sys.stdout', new_callable=StringIO)
     def test_set_complex_args_replace_all(self, mock_stdout):
         complex_args = {'key1': 'v1'}
-        interpreter = Interpreter(TaskInfo('', '', '', '', None, complex_args),
+        interpreter = Interpreter(TaskInfo('', '', None, complex_args),
                                   None, ErrorInfo(), None)
 
         key = '.'
@@ -248,7 +248,7 @@ class SimpleInterpreterTest(unittest.TestCase):
     @patch('sys.stdout', new_callable=StringIO)
     def test_del_module_args(self, mock_stdout):
         module_args = 'key1=v1 key2=v2'
-        interpreter = Interpreter(TaskInfo('', '', '', module_args, None, None),
+        interpreter = Interpreter(TaskInfo('', module_args, None, None),
                                   None, ErrorInfo(), None)
 
         key = 'key1'
@@ -260,7 +260,7 @@ class SimpleInterpreterTest(unittest.TestCase):
     @patch('sys.stdout', new_callable=StringIO)
     def test_del_complex_args_del_str(self, mock_stdout):
         complex_args = {'key1': 'v1', 'key2': 'v2'}
-        interpreter = Interpreter(TaskInfo('', '', '', '', None, complex_args),
+        interpreter = Interpreter(TaskInfo('', '', None, complex_args),
                                   None, ErrorInfo(), None)
 
         key = 'key1'
@@ -272,7 +272,7 @@ class SimpleInterpreterTest(unittest.TestCase):
     @patch('sys.stdout', new_callable=StringIO)
     def test_del_complex_args_del_all(self, mock_stdout):
         complex_args = {'key1': 'v1', 'key2': 'v2'}
-        interpreter = Interpreter(TaskInfo('', '', '', '', None, complex_args),
+        interpreter = Interpreter(TaskInfo('', '', None, complex_args),
                                   None, ErrorInfo(), None)
 
         key = '.'
@@ -283,7 +283,7 @@ class SimpleInterpreterTest(unittest.TestCase):
 
     @patch('sys.stdout', new_callable=StringIO)
     def test_redo(self, mock_stdout):
-        interpreter = Interpreter(TaskInfo('', '', '', '', None, None), None, ErrorInfo(), NextAction())
+        interpreter = Interpreter(TaskInfo('', '', None, None), None, ErrorInfo(), NextAction())
         result = interpreter.do_r('')
 
         self.assertEqual(interpreter.next_action.result, NextAction.REDO)
@@ -291,7 +291,7 @@ class SimpleInterpreterTest(unittest.TestCase):
 
     @patch('sys.stdout', new_callable=StringIO)
     def test_eof(self, mock_stdout):
-        interpreter = Interpreter(TaskInfo('', '', '', '', None, None), None, ErrorInfo(), NextAction())
+        interpreter = Interpreter(TaskInfo('', '', None, None), None, ErrorInfo(), NextAction())
         result = interpreter.do_EOF('')
 
         self.assertEqual(interpreter.next_action.result, NextAction.EXIT)
@@ -299,7 +299,7 @@ class SimpleInterpreterTest(unittest.TestCase):
 
     @patch('sys.stdout', new_callable=StringIO)
     def test_quit(self, mock_stdout):
-        interpreter = Interpreter(TaskInfo('', '', '', '', None, None), None, ErrorInfo(), NextAction())
+        interpreter = Interpreter(TaskInfo('', '', None, None), None, ErrorInfo(), NextAction())
         result = interpreter.do_q('')
 
         self.assertEqual(interpreter.next_action.result, NextAction.EXIT)
@@ -307,7 +307,7 @@ class SimpleInterpreterTest(unittest.TestCase):
 
     @patch('sys.stdout', new_callable=StringIO)
     def test_continue(self, mock_stdout):
-        interpreter = Interpreter(TaskInfo('', '', '', '', None, None), None, ErrorInfo(), NextAction())
+        interpreter = Interpreter(TaskInfo('', '', None, None), None, ErrorInfo(), NextAction())
         result = interpreter.do_c('')
 
         self.assertEqual(interpreter.next_action.result, NextAction.CONTINUE)
