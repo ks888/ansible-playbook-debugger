@@ -16,6 +16,25 @@
       tags:
         - invalid_rc
 
+    - name: no module
+      action: pi
+      tags:
+        - no_module
+
+    - name: env is not dict
+      ping:
+      environment:
+        - k: v
+      tags:
+        - env_is_not_dict
+
+    - name: action plugin throws error
+      assert:
+        that:
+          - "undefined_var"
+      tags:
+        - action_plugin_throws_error
+
 - hosts: unreachable_host
   tasks:
     - name: send unreachable ping

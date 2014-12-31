@@ -54,12 +54,12 @@ class ActionPluginWrapper(object):
             ignore_errors = task_info.vars.get('ignore_errors', False)
             error_info = self._is_failed(return_data, ignore_errors, task_info)
 
-        except errors.AnsibleError, ae:
-            if hasattr(ae, 'debugger_pass_through') and ae.debugger_pass_through:
+        except Exception, ex:
+            if hasattr(ex, 'debugger_pass_through') and ex.debugger_pass_through:
                 # pass through since the debugger was already invoked.
-                raise ae
+                raise ex
             return_data = None
-            error_info = ErrorInfo(True, errors.AnsibleError.__name__, str(ae), ae)
+            error_info = ErrorInfo(True, errors.AnsibleError.__name__, str(ex), ex)
 
         return return_data, error_info
 
