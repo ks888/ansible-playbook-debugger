@@ -7,8 +7,11 @@ from ansibledebugger.interpreter import TaskInfo, ErrorInfo, NextAction
 from ansibledebugger.interpreter.simple_interpreter import Interpreter
 
 
+# Since this class is similar to ActionPluginWrapper, it is possible to
+# create BaseWrapper class, but it may be over-engineering.
 class RunnerWrapper(object):
     """Wraps a part of Runner class so that a debugger is invoked when a task fails"""
+
     def __init__(self):
         pass
 
@@ -23,5 +26,43 @@ class RunnerWrapper(object):
         setattr(runner, '_executor_internal_inner', wrapper(runner._executor_internal_inner))
 
     def _watch(self, watched_func, runner, host, module_name, module_args, inject, port, is_chained=False, complex_args=None):
-        """execute run() method, then check its result"""
-        pass
+        """execute *watched_func*, then check its result"""
+        task_info = TaskInfo(module_name, module_args, inject, complex_args, host=host, port=port, is_chained=is_chained)
+        return_data, error_info = self._run(watched_func, runner, task_info)
+
+        while error_info.failed:
+            next_action = self._show_interpreter(task_info, return_data, error_info)
+            if next_action.result == NextAction.REDO:
+                return_data, error_info = self._run(watched_func, self_inner, task_info)
+
+            elif next_action.result == NextAction.CONTINUE or next_action.result == NextAction.EXIT:
+                if error_info.error is not None:
+                    raise error_info.error
+                else:
+                    break
+
+        return return_data
+
+    def _run(self, run_inner, self_inner, task_info):
+        return_data = run_inner(self_inner, task_info.host, task_info.module_name,
+                                task_info.module_args, task_info.vars, task_info.port,
+                                task_info.is_chained, task_info.complex_args)
+
+        ignore_errors = task_info.vars.get('ignore_errors', False)
+        error_info = self._is_failed(return_data, ignore_errors, task_info)
+
+        return return_data, error_info
+
+    def _is_failed(self, return_data, ignore_errors, task_info):
+        """Check the result of task execution. """
+        failed = False
+        reason = None
+
+        return ErrorInfo(failed, reason, str(return_data.result))
+
+    def _show_interpreter(self, task_info, return_data, error_info):
+        """ Show an interpreter to debug. """
+        next_action = NextAction()
+
+        Interpreter(task_info, return_data, error_info, next_action).cmdloop()
+        return next_action
