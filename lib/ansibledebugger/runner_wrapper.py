@@ -45,6 +45,9 @@ class RunnerWrapper(object):
                     return_data.debugger_pass_through = True
                     break
 
+        # outermost wrapper has to replace ReturnDataWithoutSlots with ReturnData
+        if hasattr(return_data, 'original_return_data'):
+            return_data = return_data.original_return_data
         return return_data
 
     def _run(self, run_inner, self_inner, task_info):

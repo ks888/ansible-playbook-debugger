@@ -10,3 +10,5 @@ class ReturnDataWithoutSlots(ReturnData):
         for attr in ReturnData.__slots__:
             value = getattr(return_data, attr)
             setattr(self, attr, value)
+
+        self.original_return_data = return_data
