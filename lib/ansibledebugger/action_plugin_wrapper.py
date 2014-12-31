@@ -30,7 +30,7 @@ class ActionPluginWrapper(object):
         while error_info.failed:
             next_action = self._show_interpreter(task_info, return_data, error_info)
             if next_action.result == NextAction.REDO:
-                return_data, error_info = self._run(self_inner, task_info, **kwargs)
+                return_data, error_info = self._run(run_inner, self_inner, task_info, **kwargs)
 
             elif next_action.result == NextAction.CONTINUE or next_action.result == NextAction.EXIT:
                 # CONTINUE and EXIT are same so far
@@ -62,7 +62,6 @@ class ActionPluginWrapper(object):
         reason = None
 
         result = return_data.result
-
         if not ignore_errors:
             if result.get('failed', False):
                 failed = True
