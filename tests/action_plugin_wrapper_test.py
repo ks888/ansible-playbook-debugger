@@ -84,8 +84,11 @@ class ActionPluginWrapperTest(unittest.TestCase):
         show_interpreter_mock.return_value = NextAction(NextAction.EXIT)
         action_plugin_wrapper.ActionPluginWrapper._show_interpreter = show_interpreter_mock
 
-        with self.assertRaises(errors.AnsibleError):
+        with self.assertRaises(errors.AnsibleError) as ex:
             normal_plugin.run(None, None, None, None, {})
+
+        self.assertTrue(hasattr(ex.exception, 'debugger_pass_through'))
+        self.assertTrue(ex.exception.debugger_pass_through)
 
     @wrapped_action_plugin(['normal'])
     def test_private_run_exec_run_inner(self):

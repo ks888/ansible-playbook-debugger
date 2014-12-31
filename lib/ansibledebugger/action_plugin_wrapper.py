@@ -35,6 +35,7 @@ class ActionPluginWrapper(object):
             elif next_action.result == NextAction.CONTINUE or next_action.result == NextAction.EXIT:
                 # CONTINUE and EXIT are same so far
                 if error_info.error is not None:
+                    error_info.error.debugger_pass_through = True
                     raise error_info.error
                 else:
                     break
@@ -51,6 +52,9 @@ class ActionPluginWrapper(object):
             error_info = self._is_failed(return_data, ignore_errors, task_info)
 
         except errors.AnsibleError, ae:
+            if hasattr(ae, 'debugger_pass_through') and ae.debugger_pass_through:
+                # pass through since the debugger was already invoked.
+                raise ae
             return_data = None
             error_info = ErrorInfo(True, errors.AnsibleError.__name__, str(ae), ae)
 

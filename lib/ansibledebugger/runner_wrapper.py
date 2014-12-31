@@ -37,6 +37,7 @@ class RunnerWrapper(object):
 
             elif next_action.result == NextAction.CONTINUE or next_action.result == NextAction.EXIT:
                 if error_info.error is not None:
+                    error_info.error.debugger_pass_through = True
                     raise error_info.error
                 else:
                     break
@@ -44,12 +45,20 @@ class RunnerWrapper(object):
         return return_data
 
     def _run(self, run_inner, self_inner, task_info):
-        return_data = run_inner(self_inner, task_info.host, task_info.module_name,
-                                task_info.module_args, task_info.vars, task_info.port,
-                                task_info.is_chained, task_info.complex_args)
+        try:
+            return_data = run_inner(self_inner, task_info.host, task_info.module_name,
+                                    task_info.module_args, task_info.vars, task_info.port,
+                                    task_info.is_chained, task_info.complex_args)
 
-        ignore_errors = task_info.vars.get('ignore_errors', False)
-        error_info = self._is_failed(return_data, ignore_errors, task_info)
+            ignore_errors = task_info.vars.get('ignore_errors', False)
+            error_info = self._is_failed(return_data, ignore_errors, task_info)
+
+        except Exception, ex:
+            if hasattr(ex, 'debugger_pass_through') and ex.debugger_pass_through:
+                # pass through since the debugger was already invoked.
+                raise ex
+            return_data = None
+            error_info = ErrorInfo(True, errors.AnsibleError.__name__, str(ex), ex)
 
         return return_data, error_info
 
