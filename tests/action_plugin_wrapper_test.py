@@ -31,9 +31,10 @@ class ActionPluginWrapperTest(unittest.TestCase):
         watch_mock = Mock(name="watch_mock")
         action_plugin_wrapper.ActionPluginWrapper._watch = watch_mock
 
-        normal_plugin.run()
+        return_data = normal_plugin.run()
 
         self.assertEqual(action_plugin_wrapper.ActionPluginWrapper._watch.call_count, 1)
+        self.assertTrue(getattr(return_data, 'debugger_pass_through', False))
 
     @wrapped_action_plugin(['normal'])
     def test_watch_call_interpreter_if_failed(self):
@@ -41,7 +42,7 @@ class ActionPluginWrapperTest(unittest.TestCase):
         normal_plugin = plugins.action_loader.get('normal', dummy_runner)
 
         internal_run_mock = Mock(name="internal_run_mock")
-        internal_run_mock.return_value = (None, ErrorInfo(failed=True))
+        internal_run_mock.return_value = (ReturnData(host='', result={}), ErrorInfo(failed=True))
         action_plugin_wrapper.ActionPluginWrapper._run = internal_run_mock
 
         show_interpreter_mock = Mock(name="show_interpreter_mock")
@@ -59,7 +60,7 @@ class ActionPluginWrapperTest(unittest.TestCase):
         normal_plugin = plugins.action_loader.get('normal', dummy_runner)
 
         internal_run_mock = Mock(name="internal_run_mock")
-        internal_run_mock.return_value = (None, ErrorInfo(failed=True))
+        internal_run_mock.return_value = (ReturnData(host='', result={}), ErrorInfo(failed=True))
         action_plugin_wrapper.ActionPluginWrapper._run = internal_run_mock
 
         show_interpreter_mock = Mock(name="show_interpreter_mock",

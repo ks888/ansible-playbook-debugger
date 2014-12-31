@@ -5,6 +5,7 @@ from ansible import errors
 
 from ansibledebugger.interpreter import TaskInfo, ErrorInfo, NextAction
 from ansibledebugger.interpreter.simple_interpreter import Interpreter
+from ansibledebugger.return_data import ReturnDataWithoutSlots
 
 
 class ActionPluginWrapper(object):
@@ -27,7 +28,7 @@ class ActionPluginWrapper(object):
         task_info = TaskInfo(module_name, module_args, inject, complex_args, conn=conn, tmp_path=tmp_path)
         return_data, error_info = self._run(run_inner, self_inner, task_info, **kwargs)
 
-        while error_info.failed:
+        while error_info.failed and not getattr(return_data, 'debugger_pass_through', False):
             next_action = self._show_interpreter(task_info, return_data, error_info)
             if next_action.result == NextAction.REDO:
                 return_data, error_info = self._run(run_inner, self_inner, task_info, **kwargs)
@@ -38,6 +39,8 @@ class ActionPluginWrapper(object):
                     error_info.error.debugger_pass_through = True
                     raise error_info.error
                 else:
+                    return_data = ReturnDataWithoutSlots(return_data)
+                    return_data.debugger_pass_through = True
                     break
 
         return return_data

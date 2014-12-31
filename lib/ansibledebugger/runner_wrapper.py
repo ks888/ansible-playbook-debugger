@@ -5,6 +5,7 @@ from ansible import errors
 
 from ansibledebugger.interpreter import TaskInfo, ErrorInfo, NextAction
 from ansibledebugger.interpreter.simple_interpreter import Interpreter
+from ansibledebugger.return_data import ReturnDataWithoutSlots
 
 
 # Since this class is similar to ActionPluginWrapper, it is possible to
@@ -30,7 +31,7 @@ class RunnerWrapper(object):
         task_info = TaskInfo(module_name, module_args, inject, complex_args, host=host, port=port, is_chained=is_chained)
         return_data, error_info = self._run(watched_func, runner, task_info)
 
-        while error_info.failed:
+        while error_info.failed and not getattr(return_data, 'debugger_pass_through', False):
             next_action = self._show_interpreter(task_info, return_data, error_info)
             if next_action.result == NextAction.REDO:
                 return_data, error_info = self._run(watched_func, self_inner, task_info)
@@ -40,6 +41,8 @@ class RunnerWrapper(object):
                     error_info.error.debugger_pass_through = True
                     raise error_info.error
                 else:
+                    return_data = ReturnDataWithoutSlots(return_data)
+                    return_data.debugger_pass_through = True
                     break
 
         return return_data
@@ -66,6 +69,13 @@ class RunnerWrapper(object):
         """Check the result of task execution. """
         failed = False
         reason = None
+
+        result = return_data.result
+
+        if not ignore_errors:
+            if result.get('failed', False):
+                failed = True
+                reason = 'temporal impl'
 
         return ErrorInfo(failed, reason, str(return_data.result))
 
