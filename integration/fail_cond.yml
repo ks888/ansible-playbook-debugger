@@ -1,0 +1,32 @@
+- hosts: testhost
+  tasks:
+    - name: ping with wrong arg
+      ping: wrong_k=v
+      tags:
+        - failed
+
+    - name: ping with wrong arg (ignore_errors)
+      ping: wrong_k=v
+      ignore_errors: yes
+      tags:
+        - failed_ignore
+
+    - name: invalid rc
+      command: ls non_exist_directory
+      tags:
+        - invalid_rc
+
+- hosts: unreachable_host
+  tasks:
+    - name: send unreachable ping
+      ping:
+      tags:
+        - unreachable
+
+    - name: send unreachable ping (ignore_errors)
+      ping:
+      ignore_errors: yes
+      tags:
+        - unreachable_ignore_errors
+
+
