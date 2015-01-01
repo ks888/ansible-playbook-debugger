@@ -18,12 +18,9 @@ from ansibledebugger import utils
 class Interpreter(cmd.Cmd):
     prompt = '(Apdb) '  # Ansible Playbook DeBugger
 
-    def __init__(self, task_info, return_data, error_info, next_action):
-        result_decoded = str(error_info.result).decode('unicode-escape')
-        self.intro = "The task execution failed.\nreason: %s\nresult: %s\n\nNow a playbook debugger is running..." % (error_info.reason, result_decoded)
-
+    def __init__(self, task_info, error_info, next_action):
+        self.intro = "Playbook debugger is invoked (%s)" % error_info.reason
         self.task_info = task_info
-        self.return_data = return_data
         self.error_info = error_info
         self.next_action = next_action
         cmd.Cmd.__init__(self)
@@ -41,13 +38,22 @@ class Interpreter(cmd.Cmd):
         """e(rror)
 Show an error info.
 * 'reason' is the reason the task failed,
-* 'result' is the result the module returned. If the module
-  throws an expception, 'result' shows the exception.
+* 'data' is the data the module returned.
+* 'comm_ok' is the comm_ok flag the playbook runner returned.
+* 'excpetion' is the exception from the playbook runner.
 """
-        result_decoded = str(self.error_info.result).decode('unicode-escape')
+        data = None
+        comm_ok = None
+        if self.error_info.return_data:
+            data = str(self.error_info.return_data.result).decode('unicode-escape')
+            comm_ok = self.error_info.return_data.comm_ok
+
+        exception = str(self.error_info.exception)
 
         display('reason: %s' % (self.error_info.reason))
-        display('result: %s' % (result_decoded))
+        display('data: %s' % (data))
+        display('comm_ok: %s' % (comm_ok))
+        display('exception: %s' % (exception))
 
     do_e = do_error
 
@@ -59,15 +65,10 @@ Show the details about this task execution.
 * 'complex args' is the module's complex arguments like lists and dicts.
 * 'keyword' is the list of keywords the task contains.
   Note that the list may not be complete.
-* 'hostname' is the name of a host associated with the task.
+* 'hostname' is the target host.
   *delegate_to* keyword is not considered here.
+* 'actual host' is the target host. *delegate_to* keyword is considered.
 * 'groups' is the host's groups.
-* 'connection type' is the type of a connection to the host.
-* 'ssh host' is the host to ssh. *delegate_to* keyword is
-  considered.
-* 'ssh options' is the options given to ssh command. Note that
-  the options here may not be complete. Run ansible with -vvvv
-  option to see the full ssh command.
 """
         template = '{0:<15} : {1}'
         display(template.format('module name', self.task_info.module_name))
@@ -76,14 +77,14 @@ Show the details about this task execution.
         display(template.format('keyword', ', '.join(self.get_keyword_list())))
 
         display(template.format('hostname', self.task_info.vars.get('inventory_hostname', '')))
+
+        host = ''
+        if hasattr(self.task_info, 'conn') and hasattr(self.task_info.conn, 'host'):
+            host = self.task_info.conn.host
+        display(template.format('actual host', host))
+
         groups = self.task_info.vars.get('group_names', [])
         display(template.format('groups', ','.join(groups)))
-
-        connection_type = self.task_info.conn.__module__.split('.')[-1]
-        display(template.format('connection type', connection_type))
-        if connection_type == 'ssh':
-            display(template.format('ssh host', self.task_info.conn.host))
-            display(template.format('ssh options', self.task_info.conn.common_args))
 
     do_l = do_list
 

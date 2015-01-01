@@ -78,7 +78,7 @@ class ActionPluginWrapperTest(unittest.TestCase):
         normal_plugin = plugins.action_loader.get('normal', dummy_runner)
 
         internal_run_mock = Mock(name="internal_run_mock")
-        internal_run_mock.return_value = (None, ErrorInfo(failed=True, error=errors.AnsibleError('')))
+        internal_run_mock.return_value = (None, ErrorInfo(failed=True, exception=errors.AnsibleError('')))
         action_plugin_wrapper.ActionPluginWrapper._run = internal_run_mock
 
         show_interpreter_mock = Mock(name="show_interpreter_mock")
@@ -120,7 +120,7 @@ class ActionPluginWrapperTest(unittest.TestCase):
 
         self.assertEqual(error_info.failed, True)
         self.assertEqual(error_info.reason, 'AnsibleError')
-        self.assertEqual(error_info.result, 'ansible error')
+        self.assertEqual(str(error_info.exception), 'ansible error')
 
     @parameterized.expand([
         # (description, ReturnData, ignore_errors, expected failed flag)

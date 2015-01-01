@@ -35,9 +35,9 @@ class ActionPluginWrapper(object):
 
             elif next_action.result == NextAction.CONTINUE or next_action.result == NextAction.EXIT:
                 # CONTINUE and EXIT are same so far
-                if error_info.error is not None:
-                    error_info.error.debugger_pass_through = True
-                    raise error_info.error
+                if error_info.exception is not None:
+                    error_info.exception.debugger_pass_through = True
+                    raise error_info.exception
                 else:
                     return_data = ReturnDataWithoutSlots(return_data)
                     return_data.debugger_pass_through = True
@@ -59,7 +59,7 @@ class ActionPluginWrapper(object):
                 # pass through since the debugger was already invoked.
                 raise ex
             return_data = None
-            error_info = ErrorInfo(True, ex.__class__.__name__, str(ex), ex)
+            error_info = ErrorInfo(True, ex.__class__.__name__, None, ex)
 
         return return_data, error_info
 
@@ -77,11 +77,11 @@ class ActionPluginWrapper(object):
                 failed = True
                 reason = 'return code is not 0'
 
-        return ErrorInfo(failed, reason, str(return_data.result))
+        return ErrorInfo(failed, reason, return_data)
 
     def _show_interpreter(self, task_info, return_data, error_info):
         """ Show an interpreter to debug. """
         next_action = NextAction()
 
-        Interpreter(task_info, return_data, error_info, next_action).cmdloop()
+        Interpreter(task_info, error_info, next_action).cmdloop()
         return next_action

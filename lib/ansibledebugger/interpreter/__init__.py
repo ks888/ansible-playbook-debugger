@@ -13,11 +13,11 @@ class TaskInfo(object):
 
 class ErrorInfo(object):
     """ Class to describe the error on a task execution. """
-    def __init__(self, failed=False, reason='', result='', error=None):
+    def __init__(self, failed=False, reason='', return_data=None, exception=None):
         self.failed = failed
         self.reason = reason
-        self.result = result
-        self.error = error
+        self.return_data = return_data
+        self.exception = exception
 
 
 class NextAction(object):
