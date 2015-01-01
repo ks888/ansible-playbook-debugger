@@ -1,4 +1,5 @@
 - hosts: testhost
+  gather_facts: no
   tasks:
     - name: ping with wrong arg
       ping: wrong_k=v
@@ -35,7 +36,29 @@
       tags:
         - action_plugin_throws_error
 
+    - name: use undefined var in template
+      ping: data={{ undefined_var }}
+      tags:
+        - undefined_var_in_template
+
+    - name: use wrong filter in template
+      ping: data={{ ['a', 'b'] | wrong_filter }}
+      tags:
+        - wrong_filter_in_template
+
+    - name: when keyword has error
+      ping:
+      when: undefined_var
+      tags:
+        - when_keyword_has_error
+
+    - name: duplicate arguments
+      ping: data=a data=b
+      tags:
+        - duplicate_arguments
+
 - hosts: unreachable_host
+  gather_facts: no
   tasks:
     - name: send unreachable ping
       ping:
@@ -48,4 +71,16 @@
       tags:
         - unreachable_ignore_errors
 
+- hosts: wrong_port_host
+  gather_facts: no
+  tasks:
+    - name: wrong port
+      ping:
+      tags:
+        - wrong_port
 
+    - name: wrong port (ignore_errors)
+      ping:
+      ignore_errors: yes
+      tags:
+        - wrong_port_ignore_errors
