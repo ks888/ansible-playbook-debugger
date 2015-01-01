@@ -64,7 +64,7 @@ class RunnerWrapper(object):
                 # pass through since the debugger was already invoked.
                 raise ex
             return_data = None
-            error_info = ErrorInfo(True, errors.AnsibleError.__name__, str(ex), ex)
+            error_info = ErrorInfo(True, ex.__class__.__name__, str(ex), ex)
 
         return return_data, error_info
 
