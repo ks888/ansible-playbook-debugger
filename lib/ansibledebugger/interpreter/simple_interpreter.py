@@ -163,7 +163,7 @@ notation to specify the child of lists and/or dicts.
 To update the entire complex_args, use `.` as *key*. *value*
 accepts JSON format as well as simple string.
 """
-        if arg is None or arg == '':
+        if arg is None or arg == '' or len(arg.split()) < 2:
             display('Invalid option. See help for usage.')
             return
 
@@ -257,7 +257,7 @@ accepts JSON format as well as simple string.
 Delete the argument of the module. The usage of the command's
 arguments is almost same as set command.
 """
-        if arg is None or arg == '':
+        if arg is None or arg == '' or len(arg.split()) != 2:
             display('Invalid option. See help for usage.')
             return
 
