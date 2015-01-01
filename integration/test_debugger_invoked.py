@@ -23,7 +23,23 @@ class FailCondTest(unittest.TestCase):
     def test_failed_ignore(self):
         command = self.base_command + ' --tags=failed_ignore'
         self.proc = pexpect.spawn(command)
-        self.proc.sendline('ok:')
+        self.proc.expect('ignoring')
+        self.proc.expect('PLAY RECAP')
+
+    def test_failed_retries(self):
+        command = self.base_command + ' --tags=failed_retries'
+        self.proc = pexpect.spawn(command)
+        num_tries = 3
+        for x in xrange(num_tries):
+            self.proc.expect('(Apdb)')
+            self.proc.sendline('quit')
+
+        self.proc.expect('FATAL')
+
+    def test_failed_retries_ignore_errors(self):
+        command = self.base_command + ' --tags=failed_retries_ignore_errors'
+        self.proc = pexpect.spawn(command)
+        self.proc.expect('ignoring')
         self.proc.expect('PLAY RECAP')
 
     def test_rc_is_not_0(self):
@@ -37,7 +53,6 @@ class FailCondTest(unittest.TestCase):
     def test_no_module(self):
         command = self.base_command + ' --tags=no_module'
         self.proc = pexpect.spawn(command)
-        self.proc.expect('AnsibleError')
         self.proc.expect('(Apdb)')
 
         self.proc.sendline('quit')
@@ -54,7 +69,6 @@ class FailCondTest(unittest.TestCase):
     def test_action_plugin_throws_error(self):
         command = self.base_command + ' --tags=action_plugin_throws_error'
         self.proc = pexpect.spawn(command)
-        self.proc.expect('AnsibleError')
         self.proc.expect('(Apdb)')
 
         self.proc.sendline('quit')
@@ -63,7 +77,6 @@ class FailCondTest(unittest.TestCase):
     def test_undefined_var_in_template(self):
         command = self.base_command + ' --tags=undefined_var_in_template'
         self.proc = pexpect.spawn(command)
-        self.proc.expect('AnsibleError')
         self.proc.expect('(Apdb)')
 
         self.proc.sendline('quit')
@@ -72,7 +85,6 @@ class FailCondTest(unittest.TestCase):
     def test_wrong_filter_in_template(self):
         command = self.base_command + ' --tags=wrong_filter_in_template'
         self.proc = pexpect.spawn(command)
-        self.proc.expect('AnsibleError')
         self.proc.expect('(Apdb)')
 
         self.proc.sendline('quit')
@@ -81,7 +93,6 @@ class FailCondTest(unittest.TestCase):
     def test_when_keyword_has_error(self):
         command = self.base_command + ' --tags=when_keyword_has_error'
         self.proc = pexpect.spawn(command)
-        self.proc.expect('AnsibleError')
         self.proc.expect('(Apdb)')
 
         self.proc.sendline('quit')
@@ -90,16 +101,28 @@ class FailCondTest(unittest.TestCase):
     def test_duplicate_arguments(self):
         command = self.base_command + ' --tags=duplicate_arguments'
         self.proc = pexpect.spawn(command)
-        self.proc.expect('AnsibleError')
         self.proc.expect('(Apdb)')
 
         self.proc.sendline('quit')
         self.proc.expect('FATAL')
 
+    def test_failed_when(self):
+        command = self.base_command + ' --tags=failed_when'
+        self.proc = pexpect.spawn(command)
+        self.proc.expect('(Apdb)')
+
+        self.proc.sendline('quit')
+        self.proc.expect('FATAL')
+
+    def test_failed_when_ignore_errors(self):
+        command = self.base_command + ' --tags=failed_when_ignore_errors'
+        self.proc = pexpect.spawn(command)
+        self.proc.expect('ignoring')
+        self.proc.expect('PLAY RECAP')
+
     def test_unreachable(self):
         command = self.base_command + ' --tags=unreachable'
         self.proc = pexpect.spawn(command)
-        self.proc.expect('AnsibleError')
         self.proc.expect('(Apdb)')
 
         self.proc.sendline('quit')
@@ -108,7 +131,6 @@ class FailCondTest(unittest.TestCase):
     def test_unreachable_ignore_errors(self):
         command = self.base_command + ' --tags=unreachable_ignore_errors'
         self.proc = pexpect.spawn(command)
-        self.proc.expect('AnsibleError')
         self.proc.expect('(Apdb)')
 
         self.proc.sendline('quit')
@@ -124,6 +146,22 @@ class FailCondTest(unittest.TestCase):
 
     def test_wrong_port_ignore_errors(self):
         command = self.base_command + ' --tags=wrong_port_ignore_errors'
+        self.proc = pexpect.spawn(command)
+        self.proc.expect('(Apdb)')
+
+        self.proc.sendline('quit')
+        self.proc.expect('FATAL')
+
+    def test_unreachable_paramiko(self):
+        command = self.base_command + ' --tags=unreachable_paramiko'
+        self.proc = pexpect.spawn(command)
+        self.proc.expect('(Apdb)')
+
+        self.proc.sendline('quit')
+        self.proc.expect('FATAL')
+
+    def test_unreachable_paramiko_ignore_errors(self):
+        command = self.base_command + ' --tags=unreachable_paramiko_ignore_errors'
         self.proc = pexpect.spawn(command)
         self.proc.expect('(Apdb)')
 

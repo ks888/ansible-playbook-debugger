@@ -12,6 +12,25 @@
       tags:
         - failed_ignore
 
+    - name: ping with wrong arg (retries)
+      ping: wrong_k=v
+      register: result
+      until: result.failed == False
+      retries: 2
+      delay: 1
+      tags:
+        - failed_retries
+
+    - name: ping with wrong arg (retries, ignore_errors)
+      ping: wrong_k=v
+      register: result
+      until: result.failed == False
+      retries: 2
+      delay: 1
+      ignore_errors: yes
+      tags:
+        - failed_retries_ignore_errors
+
     - name: invalid rc
       command: ls non_exist_directory
       tags:
@@ -57,6 +76,19 @@
       tags:
         - duplicate_arguments
 
+    - name: failed_when
+      ping: data=a
+      failed_when: True
+      tags:
+        - failed_when
+
+    - name: failed_when (ignore_errors)
+      ping: data=a
+      failed_when: True
+      ignore_errors: yes
+      tags:
+        - failed_when_ignore_errors
+
 - hosts: unreachable_host
   gather_facts: no
   tasks:
@@ -84,3 +116,17 @@
       ignore_errors: yes
       tags:
         - wrong_port_ignore_errors
+
+- hosts: unreachable_host_paramiko
+  gather_facts: no
+  tasks:
+    - name: send unreachable ping
+      ping:
+      tags:
+        - unreachable_paramiko
+
+    - name: send unreachable ping (ignore_errors)
+      ping:
+      ignore_errors: yes
+      tags:
+        - unreachable_paramiko_ignore_errors

@@ -75,10 +75,17 @@ class RunnerWrapper(object):
 
         result = return_data.result
 
-        if not ignore_errors:
-            if result.get('failed', False):
+        if result.get('failed', False):
+            if not return_data.comm_ok:
                 failed = True
-                reason = 'temporal impl'
+                reason = '"comm_ok" flag is False'
+            elif result.get('failed_when_result', False):
+                if not ignore_errors:
+                    failed = True
+                    reason = '"failed_when_result" flag is True'
+            else:
+                # out of scope of this wrapper
+                pass
 
         return ErrorInfo(failed, reason, str(return_data.result))
 

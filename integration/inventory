@@ -4,4 +4,5 @@ testhost2 ansible_ssh_host=127.0.0.1 ansible_connection=local
 
 [unreachable_group]
 unreachable_host ansible_ssh_host=unreachable
+unreachable_host_paramiko ansible_ssh_host=unreachable ansible_connection=paramiko
 wrong_port_host ansible_ssh_host=127.0.0.1 ansible_ssh_port=wrong_port
