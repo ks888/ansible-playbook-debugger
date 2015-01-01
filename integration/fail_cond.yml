@@ -36,6 +36,12 @@
       tags:
         - invalid_rc
 
+    - name: invalid rc (ignore_errors)
+      command: ls non_exist_directory
+      ignore_errors: yes
+      tags:
+        - invalid_rc_ignore_errors
+
     - name: no module
       action: pi
       tags:

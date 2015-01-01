@@ -3,7 +3,8 @@ import pexpect
 import unittest
 
 
-class FailCondTest(unittest.TestCase):
+class DebuggerInvokedTest(unittest.TestCase):
+    """Test a debugger is (not) invoked as expected."""
     base_command = 'ansible-playbook-debugger fail_cond.yml -i inventory -vv'
 
     def tearDown(self):
@@ -49,6 +50,12 @@ class FailCondTest(unittest.TestCase):
 
         self.proc.sendline('quit')
         self.proc.expect('FATAL')
+
+    def test_rc_is_not_0_ignore_errors(self):
+        command = self.base_command + ' --tags=invalid_rc_ignore_errors'
+        self.proc = pexpect.spawn(command)
+        self.proc.expect('ignoring')
+        self.proc.expect('PLAY RECAP')
 
     def test_no_module(self):
         command = self.base_command + ' --tags=no_module'
