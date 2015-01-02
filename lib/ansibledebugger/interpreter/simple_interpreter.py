@@ -148,19 +148,18 @@ Same as print command, but output is pretty printed.
 
     def do_set(self, arg):
         """set module_args|complex_args key value
-Set the argument of the module.
+Set the arguments of the module.
 
 If the first argument is `module_args`, *key*=*value* style
 argument is added to the module's args. To update the entire
-module_args, use `.` as *key*. Use quotes if *value* contains
-space(s).
+module_args, use `.` as *key*.
 
 If the first argument is `complex_args`, *key* and *value*
-are added to module's complex args. *key* specifies the
-location where *value* should be added. *key* accepts dot
-notation to specify the child of lists and/or dicts.
-To update the entire complex_args, use `.` as *key*. *value*
-accepts JSON format as well as simple string.
+are added to module's complex args. *key* is the path to
+the location where *value* is added. Use dot notation to
+specify the child of lists and/or dicts. To update the entire
+complex_args, use `.` as *key*.
+*value* accepts JSON format as well as simple string.
 """
         if arg is None or arg == '' or len(arg.split()) < 2:
             display('Invalid option. See help for usage.')

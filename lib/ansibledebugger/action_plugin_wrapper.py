@@ -73,7 +73,7 @@ class ActionPluginWrapper(object):
             if result.get('failed', False):
                 failed = True
                 reason = 'the task returned with a "failed" flag'
-            elif result.get('rc', 0) != 0:
+            elif task_info.vars.get('failed_when', None) is None and result.get('rc', 0) != 0:
                 failed = True
                 reason = 'return code is not 0'
 

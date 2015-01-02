@@ -42,7 +42,7 @@ class DebuggerInvokedTest(unittest.TestCase):
         ('invalid_rc_ignore_errors'),
         ('failed_when_ignore_errors'),
     ])
-    def test_debugger_not_invoked(self, tag_name):
+    def test_debugger_not_invoked_by_ignoring(self, tag_name):
         command = self.base_command + ' --tags=' + tag_name
         self.proc = pexpect.spawn(command)
         self.proc.expect('ignoring')
@@ -68,3 +68,9 @@ class DebuggerInvokedTest(unittest.TestCase):
             self.proc.sendline('quit')
 
         self.proc.expect('FATAL')
+
+    def test_failed_when_invalid_rc(self):
+        command = self.base_command + ' --tags=failed_when_invalid_rc'
+        self.proc = pexpect.spawn(command)
+        self.proc.expect('changed')
+        self.proc.expect('PLAY RECAP')

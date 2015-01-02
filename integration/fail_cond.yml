@@ -95,6 +95,12 @@
       tags:
         - failed_when_ignore_errors
 
+    - name: failed_when, rc!=0
+      command: ls non_exist_directory
+      failed_when: False
+      tags:
+        - failed_when_invalid_rc
+
 - hosts: unreachable_host
   gather_facts: no
   tasks:
