@@ -1,0 +1,36 @@
+- hosts: testhost
+  vars:
+    var1: value1
+    var2:
+      var3: value3
+  tasks:
+    - name: ping with invalid arg
+      ping: invalid_arg="invalid"
+      tags:
+        - invalid_module_args
+
+    - name: ping with invalid arg
+      ping:
+      args:
+        invalid_arg: invalid
+      tags:
+        - invalid_complex_args
+
+    - name: ping with wrong template
+      ping: data={{ wrong_var }}
+      tags:
+        - wrong_template
+
+- hosts: local
+  vars:
+    var1: value1
+  tasks:
+    - name: ping with invalid arg
+      ping: invalid_arg="invalid"
+      tags:
+        - multihost_invalid_args
+
+    - name: ping with wrong template
+      ping: data={{ wrong_var }}
+      tags:
+        - multihost_wrong_template

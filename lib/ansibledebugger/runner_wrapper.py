@@ -34,7 +34,7 @@ class RunnerWrapper(object):
         while error_info.failed and not getattr(return_data, 'debugger_pass_through', False):
             next_action = self._show_interpreter(task_info, return_data, error_info)
             if next_action.result == NextAction.REDO:
-                return_data, error_info = self._run(watched_func, self_inner, task_info)
+                return_data, error_info = self._run(watched_func, runner, task_info)
 
             elif next_action.result == NextAction.CONTINUE or next_action.result == NextAction.EXIT:
                 if error_info.exception is not None:
