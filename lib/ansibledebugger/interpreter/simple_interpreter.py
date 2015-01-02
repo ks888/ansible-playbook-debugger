@@ -152,8 +152,8 @@ Same as print command, but output is pretty printed.
 Set the argument of the module.
 
 If the first argument is `module_args`, *key*=*value* style
-argument is added to the module's args. If the key already
-exists, the key is updated. Use quotes if *value* contains
+argument is added to the module's args. To update the entire
+module_args, use `.` as *key*. Use quotes if *value* contains
 space(s).
 
 If the first argument is `complex_args`, *key* and *value*
@@ -182,20 +182,23 @@ accepts JSON format as well as simple string.
             display('Invalid option. See help for usage.')
 
     def set_module_args(self, key, value):
-        module_args = self.task_info.module_args
-        module_arg_list = shlex.split(module_args)
+        if key == '.':
+            self.task_info.module_args = value
+        else:
+            module_args = self.task_info.module_args
+            module_arg_list = shlex.split(module_args)
 
-        replaced = False
-        for i, arg in enumerate(module_arg_list):
-            if '=' in arg and arg.split('=', 1)[0] == key:
-                module_arg_list[i] = '%s=%s' % (key, value)
-                replaced = True
-                break
+            replaced = False
+            for i, arg in enumerate(module_arg_list):
+                if '=' in arg and arg.split('=', 1)[0] == key:
+                    module_arg_list[i] = '%s=%s' % (key, value)
+                    replaced = True
+                    break
 
-        if not replaced:
-            module_arg_list.append('%s=%s' % (key, value))
+            if not replaced:
+                module_arg_list.append('%s=%s' % (key, value))
 
-        self.task_info.module_args = ' '.join(module_arg_list)
+            self.task_info.module_args = ' '.join(module_arg_list)
 
         display('updated: %s' % (self.task_info.module_args))
 
@@ -254,8 +257,8 @@ accepts JSON format as well as simple string.
 
     def do_del(self, arg):
         """del module_args|complex_args key
-Delete the argument of the module. The usage of the command's
-arguments is almost same as set command.
+Delete the argument of the module. The usage is almost same
+as set command.
 """
         if arg is None or arg == '' or len(arg.split()) != 2:
             display('Invalid option. See help for usage.')
@@ -273,21 +276,25 @@ arguments is almost same as set command.
             display('Invalid option. See help for usage.')
 
     def del_module_args(self, key):
-        module_args = self.task_info.module_args
-        module_arg_list = shlex.split(module_args)
+        if key == '.':
+            self.task_info.module_args = ''
+            display('deleted')
+        else:
+            module_args = self.task_info.module_args
+            module_arg_list = shlex.split(module_args)
 
-        deleted = False
-        for i, arg in enumerate(module_arg_list):
-            if '=' in arg and arg.split('=', 1)[0] == key:
-                del module_arg_list[i]
-                display('deleted')
-                deleted = True
-                break
+            deleted = False
+            for i, arg in enumerate(module_arg_list):
+                if '=' in arg and arg.split('=', 1)[0] == key:
+                    del module_arg_list[i]
+                    display('deleted')
+                    deleted = True
+                    break
 
-        if not deleted:
-            display('module_args does not contain the key %s' % (key))
+            if not deleted:
+                display('module_args does not contain the key %s' % (key))
 
-        self.task_info.module_args = ' '.join(module_arg_list)
+            self.task_info.module_args = ' '.join(module_arg_list)
 
     def del_complex_args(self, key):
         if key == '.':
