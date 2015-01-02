@@ -186,6 +186,32 @@ class SimpleInterpreterTest(unittest.TestCase):
         self.assertEqual(value, interpreter.task_info.module_args)
 
     @patch('sys.stdout', new_callable=StringIO)
+    def test_set_module_args_replace_template(self, mock_stdout):
+        module_args = '{{ command }} key1={{ var1 }} key2=v2'
+        interpreter = Interpreter(TaskInfo('', module_args, None, None),
+                                  ErrorInfo(), None)
+
+        key = 'key1'
+        value = '{{ var2 }}'
+        interpreter.do_set('module_args %s %s' % (key, value))
+
+        expected_kv = '{{ command }} %s=%s key2=v2' % (key, value)
+        self.assertEqual(expected_kv, interpreter.task_info.module_args)
+
+    @patch('sys.stdout', new_callable=StringIO)
+    def test_set_module_args_replace_skip_quote(self, mock_stdout):
+        module_args = 'shell_command "key1=v1" key2=v2'
+        interpreter = Interpreter(TaskInfo('', module_args, None, None),
+                                  ErrorInfo(), None)
+
+        key = 'key1'
+        value = 'v1'
+        interpreter.do_set('module_args %s %s' % (key, value))
+
+        expected_kv = 'shell_command "key1=v1" key2=v2 %s=%s' % (key, value)
+        self.assertEqual(expected_kv, interpreter.task_info.module_args)
+
+    @patch('sys.stdout', new_callable=StringIO)
     def test_set_complex_args_add_sibling(self, mock_stdout):
         complex_args = {'key1': 'v1'}
         interpreter = Interpreter(TaskInfo('', '', None, complex_args),
@@ -271,6 +297,18 @@ class SimpleInterpreterTest(unittest.TestCase):
         interpreter.do_del('module_args  .  ')
 
         self.assertEqual(interpreter.task_info.module_args, '')
+
+    @patch('sys.stdout', new_callable=StringIO)
+    def test_del_module_args_template(self, mock_stdout):
+        module_args = 'key1={{ var1 }} key2=v2'
+        interpreter = Interpreter(TaskInfo('', module_args, None, None),
+                                  ErrorInfo(), None)
+
+        key = 'key1'
+        interpreter.do_del('module_args %s' % (key))
+
+        expect = 'key2=v2'
+        self.assertEqual(interpreter.task_info.module_args, expect)
 
     @patch('sys.stdout', new_callable=StringIO)
     def test_del_complex_args_del_str(self, mock_stdout):

@@ -5,7 +5,6 @@ import json
 import pprint
 import re
 import readline
-import shlex
 import sys
 
 from ansible.callbacks import display
@@ -186,19 +185,25 @@ accepts JSON format as well as simple string.
             self.task_info.module_args = value
         else:
             module_args = self.task_info.module_args
-            module_arg_list = shlex.split(module_args)
+            try:
+                module_args_list = utils.split_args(module_args)
+                _ = utils.split_args(value)
+            except Exception as ex:
+                display('%s' % str(ex))
+                return
 
             replaced = False
-            for i, arg in enumerate(module_arg_list):
-                if '=' in arg and arg.split('=', 1)[0] == key:
-                    module_arg_list[i] = '%s=%s' % (key, value)
+            for i, arg in enumerate(module_args_list):
+                quoted = arg.startswith('"') and arg.endswith('"') or arg.startswith("'") and arg.endswith("'")
+                if '=' in arg and not quoted and arg.split('=', 1)[0] == key:
+                    module_args_list[i] = '%s=%s' % (key, value)
                     replaced = True
                     break
 
             if not replaced:
-                module_arg_list.append('%s=%s' % (key, value))
+                module_args_list.append('%s=%s' % (key, value))
 
-            self.task_info.module_args = ' '.join(module_arg_list)
+            self.task_info.module_args = ' '.join(module_args_list)
 
         display('updated: %s' % (self.task_info.module_args))
 
@@ -281,20 +286,26 @@ as set command.
             display('deleted')
         else:
             module_args = self.task_info.module_args
-            module_arg_list = shlex.split(module_args)
+            try:
+                module_args_list = utils.split_args(module_args)
+            except Exception as ex:
+                display('%s' % str(ex))
+                return
 
             deleted = False
-            for i, arg in enumerate(module_arg_list):
-                if '=' in arg and arg.split('=', 1)[0] == key:
-                    del module_arg_list[i]
+            for i, arg in enumerate(module_args_list):
+                quoted = arg.startswith('"') and arg.endswith('"') or arg.startswith("'") and arg.endswith("'")
+                if '=' in arg and not quoted and arg.split('=', 1)[0] == key:
+                    del module_args_list[i]
                     display('deleted')
                     deleted = True
                     break
 
             if not deleted:
                 display('module_args does not contain the key %s' % (key))
+                return
 
-            self.task_info.module_args = ' '.join(module_arg_list)
+            self.task_info.module_args = ' '.join(module_args_list)
 
     def del_complex_args(self, key):
         if key == '.':
