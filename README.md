@@ -4,7 +4,7 @@ A Debugger for Ansible Playbook
 
 ## Description
 
-Although `Ansible` is a powerful tool for configuration management, debugging its playbook is often bothersome. One of its reasons is an error message from ansible may not include enough information for debug. For example, variables and task's keywords are not included usually. Another reason is the time it takes to run a playbook. For debug, you may need to run the playbook several times to get more details and to see that the bug is fixed.
+Although `Ansible` is a powerful tool for configuration management, debugging its playbook is often bothersome. One of its reasons is an error message from ansible may not include enough information for debug. For example, variables and task's keywords are not included usually. Another reason is the time it takes to run a playbook. It may take a long time, and you may need to run the playbook several times to get more details and to see that the bug is fixed.
 
 `ansible-playbook-debugger` is the debugger to facilitate such a bothersome work. When a task fails, the debugger is invoked automatically. Then you can check the module's arguments, variables, keywords, and so on. Furthermore, you can change the module's arguments to fix a bug, and re-execute the task. If the re-execution is successful, the playbook continues to run as if there was no error.
 
