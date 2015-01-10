@@ -7,6 +7,7 @@ import re
 import readline
 import sys
 
+import ansible.utils  # unused, but necessary to avoid circular imports
 from ansible.callbacks import display
 from ansible.playbook.task import Task
 
