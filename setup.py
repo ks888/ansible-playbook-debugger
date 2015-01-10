@@ -18,6 +18,11 @@ classifiers = [
     'Topic :: System :: Systems Administration',
 ]
 
+if sys.version_info < (2, 7):
+    requires = ['ansible', 'argparse']
+else:
+    requires = ['ansible']
+
 setup(
     name='ansible-playbook-debugger',
     version=__version__,
@@ -42,7 +47,7 @@ error.
     author_email='k.yagami.suou@gmail.com',
     url='https://github.com/ks888/ansible-playbook-debugger',
     license='GPLv3',
-    install_requires=['ansible'],
+    install_requires=requires,
     packages=find_packages('lib'),
     package_dir={'ansibledebugger': 'lib/ansibledebugger'},
     scripts=[
