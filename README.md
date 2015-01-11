@@ -308,3 +308,23 @@ Continue without the re-execution of the task.
 ### q(uit)
 
 Quit from the debugger. The playbook execution is aborted.
+
+## Contributing
+
+Contributions are very welcome, including bug reports, feature requests, and English correction of documents.
+
+If you'd like to report a bug, please include the steps to recreate the bug, and the versions of ansible-playbook-debugger, ansible, and python.
+
+If you'd like to send a pull request, please write a test which shows that the new feature works or the bug is fixed. Take the following steps to run tests:
+
+1. Install packages for running tests.
+
+   `pip install -r requirements-dev.txt`
+
+2. Run unit tests.
+
+  `nosetests -d -v --with-coverage --cover-inclusive --cover-package=ansibledebugger`
+
+3. Run integration tests.
+
+  `nosetests -d -v -w integration`
