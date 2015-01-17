@@ -5,6 +5,7 @@
 * [Check variables and facts](#example2)
 * [Fix an undefined variable error](#example3)
 * [Fix a wrong and complex argument](#example4)
+* [Check magic variables (hostvars, groups, etc.)](#example5)
 
 <a name="example1"/>
 ## Fix a wrong argument
@@ -199,6 +200,65 @@ ok: [testhost] => {"changed": false, "ping": "pong"}
 
 PLAY RECAP ********************************************************************
 testhost                   : ok=2    changed=0    unreachable=0    failed=0
+
+~/src/ansible-playbook-debugger-demo% 
+```
+
+<a name="example5"/>
+## Check magic variables (hostvars, groups, etc.)
+
+Ansible automatically provides a few variables, as mentioned [here](http://docs.ansible.com/playbooks_variables.html#magic-variables-and-how-to-access-information-about-other-hosts). hostvars, groups, group_names, and inventory_hostname are ones of them and this example checks their value. `pp` command here prints same things as `print` command, but pretty printed.
+
+```bash
+~/src/ansible-playbook-debugger-demo% cat demo2.yml
+---
+- hosts: local
+  vars:
+    var_in_pb: value
+  tasks:
+    - name: somehow fail here
+      fail:
+
+~/src/ansible-playbook-debugger-demo% cat inventory
+[local]
+testhost ansible_ssh_host=127.0.0.1 ansible_connection=local
+
+~/src/ansible-playbook-debugger-demo% ansible-playbook-debugger demo2.yml -i inventory -vv
+
+PLAY [local] ******************************************************************
+
+GATHERING FACTS ***************************************************************
+<127.0.0.1> REMOTE_MODULE setup
+ok: [testhost]
+
+TASK: [somehow fail here] *****************************************************
+Playbook debugger is invoked (the task returned with a "failed" flag)
+(Apdb) print hostvars['testhost']['ansible_wlan0']['ipv4']
+{u'netmask': u'255.255.255.0', u'network': u'192.168.0.0', u'address': u'192.168.0.4'}
+(Apdb) pp hostvars['testhost']['ansible_wlan0']['ipv4']
+{u'address': u'192.168.0.4',
+ u'netmask': u'255.255.255.0',
+ u'network': u'192.168.0.0'}
+(Apdb) p groups
+{'ungrouped': [], 'all': ['testhost'], 'local': ['testhost']}
+(Apdb) pp hostvars[groups['all'][0]]['ansible_wlan0']['ipv4']
+{u'address': u'192.168.0.4',
+ u'netmask': u'255.255.255.0',
+ u'network': u'192.168.0.0'}
+(Apdb) p group_names
+['local']
+(Apdb) p inventory_hostname
+testhost
+(Apdb) 
+failed: [testhost] => {"failed": true}
+msg: Failed as requested from task
+
+FATAL: all hosts have already failed -- aborting
+
+PLAY RECAP ******************************************************************** 
+           to retry, use: --limit @/home/yagami/demo2.retry
+
+testhost                   : ok=1    changed=0    unreachable=0    failed=1   
 
 ~/src/ansible-playbook-debugger-demo% 
 ```

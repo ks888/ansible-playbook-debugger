@@ -105,6 +105,7 @@ See [EXAMPLES](https://github.com/ks888/ansible-playbook-debugger/blob/master/EX
 * [Check variables and facts](https://github.com/ks888/ansible-playbook-debugger/blob/master/EXAMPLES.md#example2)
 * [Fix an undefined variable error](https://github.com/ks888/ansible-playbook-debugger/blob/master/EXAMPLES.md#example3)
 * [Fix a wrong and complex argument](https://github.com/ks888/ansible-playbook-debugger/blob/master/EXAMPLES.md#example4)
+* [Check magic variables (hostvars, groups, etc.)](https://github.com/ks888/ansible-playbook-debugger/blob/master/EXAMPLES.md#example5)
 
 ## Available Commands
 
