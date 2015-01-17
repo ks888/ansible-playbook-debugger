@@ -170,7 +170,7 @@ If you'd like to send a pull request, please write a test which shows that the n
 
 2. Run unit tests.
 
-  `nosetests -d -v --with-coverage --cover-inclusive --cover-package=ansibledebugger`
+  `nosetests -d -v --with-coverage --cover-erase --cover-inclusive --cover-package=ansibledebugger`
 
 3. Run integration tests.
 

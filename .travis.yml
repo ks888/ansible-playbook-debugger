@@ -6,7 +6,7 @@ install:
   - pip install -r requirements-dev.txt
 script:
   # unit tests
-  - nosetests -s -d -v --with-coverage --cover-inclusive --cover-package=ansibledebugger
+  - nosetests -s -d -v --with-coverage --cover-erase --cover-inclusive --cover-package=ansibledebugger
   # integration tests
   - nosetests -s -d -v -w integration
 
