@@ -8,6 +8,7 @@ import readline
 import sys
 
 import ansible.utils  # unused, but necessary to avoid circular imports
+from ansible.utils import template
 from ansible.callbacks import display
 from ansible.playbook.task import Task
 
@@ -124,19 +125,33 @@ Same as print command, but output is pretty printed.
 
     def print_module_name(self, arg, pp=False):
         module_name = self.task_info.module_name
-        display('module_name: %s' % (self.pformat_if_pp(module_name, pp)))
+        display('%s' % (self.pformat_if_pp(module_name, pp)))
 
     def print_module_args(self, arg, pp=False):
         module_args = self.task_info.module_args
-        display('module_args: %s' % (self.pformat_if_pp(module_args, pp)))
+        display('%s' % (self.pformat_if_pp(module_args, pp)))
 
     def print_complex_args(self, arg, pp=False):
         complex_args = self.task_info.complex_args
-        display('complex_args: %s' % (self.pformat_if_pp(complex_args, pp)))
+        display('%s' % (self.pformat_if_pp(complex_args, pp)))
 
     def print_var(self, arg, pp=False):
-        value = self.task_info.vars.get(arg, 'Not defined')
-        display('%s: %s' % (arg, self.pformat_if_pp(value, pp)))
+        if arg.find('[') == -1:
+            value = self.task_info.vars.get(arg, 'Not defined')
+        else:
+            varname = arg[:arg.find('[')]
+            var = self.task_info.vars.get(varname)
+            if var is not None:
+                try:
+                    value = template.template('.', "{{ %s }}" % arg, {varname: var})
+                    if "{{" in value:
+                        value = 'Not defined'
+                except Exception, ex:
+                    value = str(ex)
+            else:
+                value = 'Not defined'
+
+        display('%s' % (self.pformat_if_pp(value, pp)))
 
     def print_all_vars(self, pp=False):
         for k, v in self.task_info.vars.iteritems():

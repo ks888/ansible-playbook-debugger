@@ -18,7 +18,7 @@ def dataset():
     complex_args = {'ca_k': 'ca_v'}
     complex_args_expect = str(complex_args)
     vars = {'v_k': 'v_v'}
-    vars_expect = 'v_k: v_v'
+    vars_expect = 'v_v'
 
     interpreter = Interpreter(TaskInfo(module_name, module_args, vars, complex_args),
                               ErrorInfo(), None)
@@ -121,6 +121,45 @@ class SimpleInterpreterTest(unittest.TestCase):
         self.assertNotIn(module_args, mock_stdout.getvalue())
         self.assertNotIn(complex_args_expect, mock_stdout.getvalue())
         self.assertIn(vars_expect, mock_stdout.getvalue())
+
+    @patch('sys.stdout', new_callable=StringIO)
+    def test_print_not_defined_var(self, mock_stdout):
+        interpreter, module_name, module_args, complex_args_expect, vars_expect = dataset()
+        interpreter.do_p('undefined_var')
+        vars_expect = 'Not defined'
+
+        self.assertIn(vars_expect, mock_stdout.getvalue())
+
+    @patch('sys.stdout', new_callable=StringIO)
+    def test_print_var_in_dict(self, mock_stdout):
+        var = {'key': {'key2': 'v'}}
+        var_expect = 'v'
+        interpreter = Interpreter(TaskInfo(None, None, var, None),
+                                  ErrorInfo(), None)
+        interpreter.do_p("key['key2']")
+
+        self.assertIn(var_expect, mock_stdout.getvalue())
+
+    @patch('sys.stdout', new_callable=StringIO)
+    def test_print_var_unknown_key_in_dict(self, mock_stdout):
+        var = {'key': {'key2': 'v'}}
+        var_expect = 'v'
+        interpreter = Interpreter(TaskInfo(None, None, var, None),
+                                  ErrorInfo(), None)
+        interpreter.do_p("key['unknown_key']")
+        var_expect = 'Not defined'
+
+        self.assertIn(var_expect, mock_stdout.getvalue())
+
+    @patch('sys.stdout', new_callable=StringIO)
+    def test_print_var_in_list(self, mock_stdout):
+        var = {'key': ['v1', 'v2']}
+        var_expect = 'v2'
+        interpreter = Interpreter(TaskInfo(None, None, var, None),
+                                  ErrorInfo(), None)
+        interpreter.do_p("key[1]")
+
+        self.assertIn(var_expect, mock_stdout.getvalue())
 
     @patch('sys.stdout', new_callable=StringIO)
     def test_set_module_args_add(self, mock_stdout):
