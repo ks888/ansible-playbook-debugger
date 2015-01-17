@@ -136,20 +136,12 @@ Same as print command, but output is pretty printed.
         display('%s' % (self.pformat_if_pp(complex_args, pp)))
 
     def print_var(self, arg, pp=False):
-        if arg.find('[') == -1:
-            value = self.task_info.vars.get(arg, 'Not defined')
-        else:
-            varname = arg[:arg.find('[')]
-            var = self.task_info.vars.get(varname)
-            if var is not None:
-                try:
-                    value = template.template('.', "{{ %s }}" % arg, {varname: var})
-                    if "{{" in value:
-                        value = 'Not defined'
-                except Exception, ex:
-                    value = str(ex)
-            else:
+        try:
+            value = template.template('.', '{{ %s }}' % arg, self.task_info.vars)
+            if '{{' in value:
                 value = 'Not defined'
+        except Exception, ex:
+            value = str(ex)
 
         display('%s' % (self.pformat_if_pp(value, pp)))
 
