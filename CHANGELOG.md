@@ -1,5 +1,13 @@
 # Changes
 
+## 0.2.1 - Jan 17, 2015
+
+* Enable to use [] to access list/dict in print command
+* Add --version option
+* Connect to travis CI
+* Add some documents for developer
+* Add more examples
+
 ## 0.2.0 - Jan 2, 2015
 
 * Enable to use template in set command (if a playbook has a template error)
