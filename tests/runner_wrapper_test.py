@@ -24,6 +24,17 @@ class RunnerWrapperTest(unittest.TestCase):
         self.assertIsNotNone(dummy_runner._executor_internal_inner.func_closure)
         self.assertTrue(hasattr(dummy_runner._executor_internal_inner.func_closure[0].cell_contents, '__call__'))
 
+    def test_get_action_plugin_wrapper_info(self):
+        ap_wrapper = action_plugin_wrapper.ActionPluginWrapper()
+        wrapper = runner_wrapper.RunnerWrapper(ap_wrapper)
+
+        run_inner_mock = Mock(name="run_inner_mock")
+        run_inner_mock.return_value = ReturnData(host='', result={})
+        ap_wrapper._watch(run_inner_mock, None, None, None, None, None, None)
+
+        self.assertIsInstance(wrapper.action_plugin_wrapper.task_info, TaskInfo)
+        self.assertFalse(wrapper.action_plugin_wrapper.is_reset)
+
     def test_watch_is_called(self):
         wrapper = runner_wrapper.RunnerWrapper(None)
         wrapper.wrap(runner.Runner)
