@@ -19,8 +19,8 @@ from ansible.utils import plugins
 from ansible.callbacks import display
 
 from ansibledebugger import __version__
-from ansibledebugger import action_plugin_wrapper
-from ansibledebugger import runner_wrapper
+from ansibledebugger.action_plugin_wrapper import ActionPluginWrapper
+from ansibledebugger.runner_wrapper import RunnerWrapper
 from ansibledebugger import utils
 
 
@@ -33,13 +33,13 @@ def main(args):
     dummy_runner = runner.Runner(host_list=[])
     action_loader = plugins.action_loader
     action_plugins = list(action_loader.all(dummy_runner))
+    action_plugin_wrapper = ActionPluginWrapper()
 
     for action_plugin in action_plugins:
-        wrapper = action_plugin_wrapper.ActionPluginWrapper()
-        wrapper.wrap(action_plugin.__class__)
+        action_plugin_wrapper.wrap(action_plugin.__class__)
 
-    wrapper = runner_wrapper.RunnerWrapper()
-    wrapper.wrap(runner.Runner)
+    runner_wrapper = RunnerWrapper(action_plugin_wrapper)
+    runner_wrapper.wrap(runner.Runner)
 
     ansibleplaybook_path = distutils.spawn.find_executable("ansible-playbook")
     if not ansibleplaybook_path:

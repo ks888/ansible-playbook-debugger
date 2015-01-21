@@ -101,6 +101,12 @@
       tags:
         - failed_when_invalid_rc
 
+    - name: failed_when is False, failed is True
+      fail:
+      failed_when: False
+      tags:
+        - failed_when_failed
+
 - hosts: unreachable_host
   gather_facts: no
   tasks:

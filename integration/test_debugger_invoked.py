@@ -27,6 +27,7 @@ class DebuggerInvokedTest(unittest.TestCase):
         ('wrong_port_ignore_errors'),
         ('unreachable_paramiko'),
         ('unreachable_paramiko_ignore_errors'),
+        ('failed_retries'),
     ])
     def test_debugger_invoked(self, tag_name):
         command = self.base_command + ' --tags=' + tag_name
@@ -48,6 +49,15 @@ class DebuggerInvokedTest(unittest.TestCase):
         self.proc.expect('ignoring')
         self.proc.expect('PLAY RECAP')
 
+    @parameterized.expand([
+        ('failed_when_failed'),
+        ('failed_when_invalid_rc'),
+    ])
+    def test_debugger_not_invoked(self, tag_name):
+        command = self.base_command + ' --tags=' + tag_name
+        self.proc = pexpect.spawn(command)
+        self.proc.expect('PLAY RECAP')
+
     def test_failed(self):
         command = self.base_command + ' --tags=failed'
         self.proc = pexpect.spawn(command)
@@ -58,19 +68,3 @@ class DebuggerInvokedTest(unittest.TestCase):
 
         # unreachable=1 if return_data is not returned as expected
         self.proc.expect('unreachable=0')
-
-    def test_failed_retries(self):
-        command = self.base_command + ' --tags=failed_retries'
-        self.proc = pexpect.spawn(command)
-        num_tries = 3
-        for x in xrange(num_tries):
-            self.proc.expect('(Apdb)')
-            self.proc.sendline('quit')
-
-        self.proc.expect('FATAL')
-
-    def test_failed_when_invalid_rc(self):
-        command = self.base_command + ' --tags=failed_when_invalid_rc'
-        self.proc = pexpect.spawn(command)
-        self.proc.expect('changed')
-        self.proc.expect('PLAY RECAP')
