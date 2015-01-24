@@ -8,8 +8,9 @@ from ansibledebugger.interpreter.simple_interpreter import Interpreter
 class RunnerWrapper(object):
     """Wraps a part of Runner class so that a debugger is invoked when a task fails"""
 
-    def __init__(self, action_plugin_wrapper):
+    def __init__(self, action_plugin_wrapper, breakpoint_task_list=[]):
         self.action_plugin_wrapper = action_plugin_wrapper
+        self.breakpoint_task_list = breakpoint_task_list
 
     def wrap(self, runner):
         """Wrap some methods of Runner class"""
@@ -24,7 +25,16 @@ class RunnerWrapper(object):
     def _watch(self, watched_func, runner, host, module_name, module_args, inject, port, is_chained=False, complex_args=None):
         """execute *watched_func*, then check its result"""
         task_info = TaskInfo(module_name, module_args, inject, complex_args, host=host, port=port, is_chained=is_chained, task=runner.callbacks.task)
+
+        if self._is_breakpoint_task(task_info.task):
+            return_data = None
+            error_info = ErrorInfo(False, 'breakpoint', None, None)
+            next_action = self._show_interpreter(task_info, return_data, error_info)
+            if next_action.result == NextAction.EXIT:
+                exit(1)
+
         return_data, error_info = self._run(watched_func, runner, task_info)
+
         while error_info.failed:
             next_action = self._show_interpreter(task_info, return_data, error_info)
             if next_action.result == NextAction.REDO:
@@ -39,6 +49,13 @@ class RunnerWrapper(object):
                 exit(1)
 
         return return_data
+
+    def _is_breakpoint_task(self, curr_task):
+        for breakpoint_taskname in self.breakpoint_task_list:
+            if breakpoint_taskname == curr_task.name:
+                return True
+
+        return False
 
     def _run(self, run_inner, self_inner, task_info):
         self.action_plugin_wrapper.reset_data()

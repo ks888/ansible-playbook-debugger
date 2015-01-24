@@ -96,7 +96,7 @@ class RunnerWrapperTest(unittest.TestCase):
         with self.assertRaises(errors.AnsibleError):
             wrapper._watch(None, runner_mock, None, None, None, None, None)
 
-    def test_watch_exit_if_failed_and_next_action_is_exit(self):
+    def test_watch_calls_exit_if_failed_and_next_action_is_exit(self):
         internal_run_mock = Mock(name="internal_run_mock")
         internal_run_mock.return_value = (ReturnData(host='', result={}), ErrorInfo(failed=True))
         runner_wrapper.RunnerWrapper._run = internal_run_mock
@@ -112,6 +112,25 @@ class RunnerWrapperTest(unittest.TestCase):
             wrapper._watch(None, runner_mock, None, None, None, None, None)
 
         self.assertEqual(ex.exception.code, 1)
+
+    def test_watch_calls_interpreter_if_breakpoint(self):
+        internal_run_mock = Mock(name="internal_run_mock")
+        internal_run_mock.return_value = (ReturnData(host='', result={}), ErrorInfo(failed=False))
+        runner_wrapper.RunnerWrapper._run = internal_run_mock
+
+        show_interpreter_mock = Mock(name="show_interpreter_mock",
+                                     side_effect=[NextAction(NextAction.CONTINUE)])
+        runner_wrapper.RunnerWrapper._show_interpreter = show_interpreter_mock
+
+        wrapper = runner_wrapper.RunnerWrapper(None, ['breakpoint task'])
+        task_mock = Mock()  # 'name' is already taken
+        task_mock.name = 'breakpoint task'
+        callbacks_mock = Mock(task=task_mock)
+        runner_mock = Mock(callbacks=callbacks_mock)
+        wrapper._watch(None, runner_mock, None, None, None, None, None)
+
+        self.assertEqual(runner_wrapper.RunnerWrapper._run.call_count, 1)
+        self.assertEqual(runner_wrapper.RunnerWrapper._show_interpreter.call_count, 1)
 
     def test_private_run_exec_run_inner(self):
         run_inner_mock = Mock(name="run_inner_mock")
