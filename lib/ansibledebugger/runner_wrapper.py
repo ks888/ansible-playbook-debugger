@@ -87,5 +87,8 @@ class RunnerWrapper(object):
         """ Show an interpreter to debug. """
         next_action = NextAction()
 
-        Interpreter(task_info, error_info, next_action).cmdloop()
+        optional_info = {}
+        if self.action_plugin_wrapper.task_info is not None:
+            optional_info['action_plugin_wrapper'] = self.action_plugin_wrapper.task_info
+        Interpreter(task_info, error_info, next_action, optional_info=optional_info).cmdloop()
         return next_action

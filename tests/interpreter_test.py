@@ -1,11 +1,9 @@
 
 from mock import patch
+from mock import Mock
 from nose_parameterized import parameterized
 from StringIO import StringIO
 import unittest
-
-from ansible import runner
-from ansible import utils
 
 from ansible.runner.return_data import ReturnData
 from ansibledebugger.interpreter import ErrorInfo, NextAction, TaskInfo
@@ -56,13 +54,17 @@ class SimpleInterpreterTest(unittest.TestCase):
         keyword = {'ignore_errors': False}
         keyword_expect = 'ignore_errors:False'
         hostname = 'test_host'
+        actual_host_expect = 'actual_host'
+        conn_mock = Mock(host=actual_host_expect)
+        action_plugin_wrapper_info = Mock(conn=conn_mock)
+        optional_info = {'action_plugin_wrapper': action_plugin_wrapper_info}
         groups = ['a', 'b']
         groups_expect = 'a,b'
         vars = {'inventory_hostname': hostname, 'group_names': groups}
         vars.update(keyword)
 
         interpreter = Interpreter(TaskInfo(module_name, module_args, vars, complex_args),
-                                  ErrorInfo(), None)
+                                  ErrorInfo(), None, optional_info)
         interpreter.do_l(None)
 
         self.assertIn(module_name, mock_stdout.getvalue())
@@ -70,6 +72,7 @@ class SimpleInterpreterTest(unittest.TestCase):
         self.assertIn(complex_args_expect, mock_stdout.getvalue())
         self.assertIn(keyword_expect, mock_stdout.getvalue())
         self.assertIn(hostname, mock_stdout.getvalue())
+        self.assertIn(actual_host_expect, mock_stdout.getvalue())
         self.assertIn(groups_expect, mock_stdout.getvalue())
 
     @patch('sys.stdout', new_callable=StringIO)

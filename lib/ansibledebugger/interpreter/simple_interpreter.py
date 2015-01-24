@@ -19,11 +19,13 @@ from ansibledebugger import utils
 class Interpreter(cmd.Cmd):
     prompt = '(Apdb) '  # Ansible Playbook DeBugger
 
-    def __init__(self, task_info, error_info, next_action):
+    def __init__(self, task_info, error_info, next_action, optional_info={}):
         self.intro = "Playbook debugger is invoked (%s)" % error_info.reason
         self.task_info = task_info
         self.error_info = error_info
         self.next_action = next_action
+        self.optional_info = optional_info
+
         cmd.Cmd.__init__(self)
 
     def cmdloop(self):
@@ -80,8 +82,8 @@ Show the details about this task execution.
         display(template.format('hostname', self.task_info.vars.get('inventory_hostname', '')))
 
         host = ''
-        if hasattr(self.task_info, 'conn') and hasattr(self.task_info.conn, 'host'):
-            host = self.task_info.conn.host
+        if 'action_plugin_wrapper' in self.optional_info:
+            host = self.optional_info['action_plugin_wrapper'].conn.host
         display(template.format('actual host', host))
 
         groups = self.task_info.vars.get('group_names', [])
