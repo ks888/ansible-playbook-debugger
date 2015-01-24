@@ -53,7 +53,7 @@ class RunnerWrapperTest(unittest.TestCase):
         runner_wrapper.RunnerWrapper._run = internal_run_mock
 
         show_interpreter_mock = Mock(name="show_interpreter_mock")
-        show_interpreter_mock.return_value = NextAction(NextAction.EXIT)
+        show_interpreter_mock.return_value = NextAction(NextAction.CONTINUE)
         runner_wrapper.RunnerWrapper._show_interpreter = show_interpreter_mock
 
         wrapper = runner_wrapper.RunnerWrapper(None)
@@ -70,7 +70,7 @@ class RunnerWrapperTest(unittest.TestCase):
         runner_wrapper.RunnerWrapper._run = internal_run_mock
 
         show_interpreter_mock = Mock(name="show_interpreter_mock",
-                                     side_effect=[NextAction(NextAction.REDO), NextAction(NextAction.EXIT)])
+                                     side_effect=[NextAction(NextAction.REDO), NextAction(NextAction.CONTINUE)])
         runner_wrapper.RunnerWrapper._show_interpreter = show_interpreter_mock
 
         wrapper = runner_wrapper.RunnerWrapper(None)
@@ -87,14 +87,31 @@ class RunnerWrapperTest(unittest.TestCase):
         runner_wrapper.RunnerWrapper._run = internal_run_mock
 
         show_interpreter_mock = Mock(name="show_interpreter_mock")
-        show_interpreter_mock.return_value = NextAction(NextAction.EXIT)
+        show_interpreter_mock.return_value = NextAction(NextAction.CONTINUE)
         runner_wrapper.RunnerWrapper._show_interpreter = show_interpreter_mock
 
         wrapper = runner_wrapper.RunnerWrapper(None)
-        with self.assertRaises(errors.AnsibleError) as ex:
-            callbacks_mock = Mock(task=None)
-            runner_mock = Mock(callbacks=callbacks_mock)
+        callbacks_mock = Mock(task=None)
+        runner_mock = Mock(callbacks=callbacks_mock)
+        with self.assertRaises(errors.AnsibleError):
             wrapper._watch(None, runner_mock, None, None, None, None, None)
+
+    def test_watch_exit_if_failed_and_next_action_is_exit(self):
+        internal_run_mock = Mock(name="internal_run_mock")
+        internal_run_mock.return_value = (ReturnData(host='', result={}), ErrorInfo(failed=True))
+        runner_wrapper.RunnerWrapper._run = internal_run_mock
+
+        show_interpreter_mock = Mock(name="show_interpreter_mock",
+                                     side_effect=[NextAction(NextAction.REDO), NextAction(NextAction.EXIT)])
+        runner_wrapper.RunnerWrapper._show_interpreter = show_interpreter_mock
+
+        wrapper = runner_wrapper.RunnerWrapper(None)
+        callbacks_mock = Mock(task=None)
+        runner_mock = Mock(callbacks=callbacks_mock)
+        with self.assertRaises(SystemExit) as ex:
+            wrapper._watch(None, runner_mock, None, None, None, None, None)
+
+        self.assertEqual(ex.exception.code, 1)
 
     def test_private_run_exec_run_inner(self):
         run_inner_mock = Mock(name="run_inner_mock")

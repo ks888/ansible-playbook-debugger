@@ -30,11 +30,13 @@ class RunnerWrapper(object):
             if next_action.result == NextAction.REDO:
                 return_data, error_info = self._run(watched_func, runner, task_info)
 
-            elif next_action.result == NextAction.CONTINUE or next_action.result == NextAction.EXIT:
+            elif next_action.result == NextAction.CONTINUE:
                 if error_info.exception is not None:
                     raise error_info.exception
                 else:
                     break
+            elif next_action.result == NextAction.EXIT:
+                exit(1)
 
         return return_data
 

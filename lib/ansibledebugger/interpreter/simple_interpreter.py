@@ -361,6 +361,7 @@ as set command.
 
     def do_quit(self, args):
         """Quit from the debugger. The playbook execution is aborted."""
+        display('aborted')
         self.next_action.set(NextAction.EXIT)
         return True
 
