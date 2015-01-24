@@ -74,6 +74,7 @@ Show the details about this task execution.
 * 'groups' is the host's groups.
 """
         template = '{0:<15} : {1}'
+        display(template.format('task name', self.task_info.task.name))
         display(template.format('module name', self.task_info.module_name))
         display(template.format('module args', self.task_info.module_args))
         display(template.format('complex args', self.task_info.complex_args))

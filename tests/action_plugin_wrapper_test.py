@@ -1,15 +1,12 @@
 
 import unittest
-from nose_parameterized import parameterized
 from mock import Mock
 
-from ansible import errors
 from ansible import runner
 from ansible.utils import plugins
 from ansible.runner.return_data import ReturnData
 
 from ansibledebugger import action_plugin_wrapper
-from ansibledebugger.interpreter import TaskInfo, ErrorInfo, NextAction
 
 from testutils import wrapped_action_plugin
 

@@ -57,7 +57,9 @@ class RunnerWrapperTest(unittest.TestCase):
         runner_wrapper.RunnerWrapper._show_interpreter = show_interpreter_mock
 
         wrapper = runner_wrapper.RunnerWrapper(None)
-        wrapper._watch(None, None, None, None, None, None, None)
+        callbacks_mock = Mock(task=None)
+        runner_mock = Mock(callbacks=callbacks_mock)
+        wrapper._watch(None, runner_mock, None, None, None, None, None)
 
         self.assertEqual(runner_wrapper.RunnerWrapper._run.call_count, 1)
         self.assertEqual(runner_wrapper.RunnerWrapper._show_interpreter.call_count, 1)
@@ -72,7 +74,9 @@ class RunnerWrapperTest(unittest.TestCase):
         runner_wrapper.RunnerWrapper._show_interpreter = show_interpreter_mock
 
         wrapper = runner_wrapper.RunnerWrapper(None)
-        wrapper._watch(None, None, None, None, None, None, None)
+        callbacks_mock = Mock(task=None)
+        runner_mock = Mock(callbacks=callbacks_mock)
+        wrapper._watch(None, runner_mock, None, None, None, None, None)
 
         self.assertEqual(runner_wrapper.RunnerWrapper._run.call_count, 2)
         self.assertEqual(runner_wrapper.RunnerWrapper._show_interpreter.call_count, 2)
@@ -88,7 +92,9 @@ class RunnerWrapperTest(unittest.TestCase):
 
         wrapper = runner_wrapper.RunnerWrapper(None)
         with self.assertRaises(errors.AnsibleError) as ex:
-            wrapper._watch(None, None, None, None, None, None, None, None)
+            callbacks_mock = Mock(task=None)
+            runner_mock = Mock(callbacks=callbacks_mock)
+            wrapper._watch(None, runner_mock, None, None, None, None, None)
 
     def test_private_run_exec_run_inner(self):
         run_inner_mock = Mock(name="run_inner_mock")

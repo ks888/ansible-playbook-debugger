@@ -23,7 +23,7 @@ class RunnerWrapper(object):
 
     def _watch(self, watched_func, runner, host, module_name, module_args, inject, port, is_chained=False, complex_args=None):
         """execute *watched_func*, then check its result"""
-        task_info = TaskInfo(module_name, module_args, inject, complex_args, host=host, port=port, is_chained=is_chained)
+        task_info = TaskInfo(module_name, module_args, inject, complex_args, host=host, port=port, is_chained=is_chained, task=runner.callbacks.task)
         return_data, error_info = self._run(watched_func, runner, task_info)
         while error_info.failed:
             next_action = self._show_interpreter(task_info, return_data, error_info)

@@ -47,6 +47,8 @@ class SimpleInterpreterTest(unittest.TestCase):
 
     @patch('sys.stdout', new_callable=StringIO)
     def test_list(self, mock_stdout):
+        task_name = 'test task'
+        task_mock = Mock(name=task_name)
         module_name = 'test module'
         module_args = 'ma_k=ma_v'
         complex_args = {'ca_k': 'ca_v'}
@@ -63,10 +65,11 @@ class SimpleInterpreterTest(unittest.TestCase):
         vars = {'inventory_hostname': hostname, 'group_names': groups}
         vars.update(keyword)
 
-        interpreter = Interpreter(TaskInfo(module_name, module_args, vars, complex_args),
+        interpreter = Interpreter(TaskInfo(module_name, module_args, vars, complex_args, task=task_mock),
                                   ErrorInfo(), None, optional_info)
         interpreter.do_l(None)
 
+        self.assertIn(task_name, mock_stdout.getvalue())
         self.assertIn(module_name, mock_stdout.getvalue())
         self.assertIn(module_args, mock_stdout.getvalue())
         self.assertIn(complex_args_expect, mock_stdout.getvalue())
