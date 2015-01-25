@@ -34,7 +34,7 @@ class DebuggerInvokedTest(unittest.TestCase):
         self.proc = pexpect.spawn(command)
         self.proc.expect('(Apdb)')
 
-        self.proc.sendline('quit')
+        self.proc.sendline('continue')
         self.proc.expect('FATAL')
 
     @parameterized.expand([
@@ -63,8 +63,25 @@ class DebuggerInvokedTest(unittest.TestCase):
         self.proc = pexpect.spawn(command)
         self.proc.expect('(Apdb)')
 
-        self.proc.sendline('quit')
+        self.proc.sendline('continue')
         self.proc.expect('FATAL')
 
         # unreachable=1 if return_data is not returned as expected
         self.proc.expect('unreachable=0')
+
+    def test_breakpoint(self):
+        command = self.base_command + ' --tags=failed --breakpoint "ping with wrong arg"'
+        self.proc = pexpect.spawn(command)
+        self.proc.expect('(Apdb)')
+
+        self.proc.sendline('error')
+        self.proc.expect('breakpoint')
+
+        self.proc.sendline('continue')
+        self.proc.expect('(Apdb)')
+
+        self.proc.sendline('del module_args wrong_k')
+        self.proc.expect('(Apdb)')
+
+        self.proc.sendline('redo')
+        self.proc.expect('ok:')

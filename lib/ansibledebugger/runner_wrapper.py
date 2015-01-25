@@ -26,7 +26,7 @@ class RunnerWrapper(object):
         """execute *watched_func*, then check its result"""
         task_info = TaskInfo(module_name, module_args, inject, complex_args, host=host, port=port, is_chained=is_chained, task=runner.callbacks.task)
 
-        if self._is_breakpoint_task(task_info.task):
+        if task_info.task is not None and self._is_breakpoint_task(task_info.task):
             return_data = None
             error_info = ErrorInfo(False, 'breakpoint', None, None)
             next_action = self._show_interpreter(task_info, return_data, error_info)

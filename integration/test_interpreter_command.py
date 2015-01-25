@@ -47,7 +47,7 @@ class WrongModuleArgsCaseTest(unittest.TestCase):
         self.proc.expect('(Apdb)')
 
         self.proc.sendline('quit')
-        self.proc.expect('FATAL')
+        self.proc.expect('abort')
 
 
 class WrongComplexArgsCaseTest(unittest.TestCase):

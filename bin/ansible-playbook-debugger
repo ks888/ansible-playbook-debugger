@@ -26,9 +26,11 @@ from ansibledebugger import utils
 
 def main(args):
     """Wrap some funcs so that a debugger is invoked, then run ansible-playbook"""
-    parser = argparse.ArgumentParser(add_help=False)
+    parser = argparse.ArgumentParser(epilog='Options available for ansible-playbook command are also available.')
     parser.add_argument('--version', action='version', version='%(prog)s ' + __version__)
-    parser.parse_known_args()
+    parser.add_argument('--breakpoint', action='append', default=[], help='invoke the debugger before running the task matching this name', metavar='TASK_NAME')
+    known_args, unknown_args = parser.parse_known_args()
+    breakpoint = known_args.breakpoint
 
     dummy_runner = runner.Runner(host_list=[])
     action_loader = plugins.action_loader
@@ -38,14 +40,14 @@ def main(args):
     for action_plugin in action_plugins:
         action_plugin_wrapper.wrap(action_plugin.__class__)
 
-    runner_wrapper = RunnerWrapper(action_plugin_wrapper)
+    runner_wrapper = RunnerWrapper(action_plugin_wrapper, breakpoint)
     runner_wrapper.wrap(runner.Runner)
 
     ansibleplaybook_path = distutils.spawn.find_executable("ansible-playbook")
     if not ansibleplaybook_path:
         raise errors.AnsibleError("Failed to find 'ansible-playbook' script in PATH")
     ansibleplaybook = imp.load_source('ansibledebugger', ansibleplaybook_path)
-    return ansibleplaybook.main(args)
+    return ansibleplaybook.main(unknown_args)
 
 if __name__ == "__main__":
     display(" ", log_only=True)

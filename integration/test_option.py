@@ -29,5 +29,5 @@ class OptionTest(unittest.TestCase):
     def test_help(self):
         command = 'ansible-playbook-debugger --help'
         self.proc = pexpect.spawn(command)
-        self.proc.expect('playbook.yml')
+        self.proc.expect('--breakpoint')  # the option only the debugger has
         self.proc.expect(pexpect.EOF)
