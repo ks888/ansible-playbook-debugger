@@ -69,6 +69,7 @@ In this case, any changes to the source code will be reflected immediately.
 
 1. Replace `ansible-playbook` command with `ansible-playbook-debugger` command when you call `ansible-playbook` command in a command line.
   * Although `ansible-playbook` options are still available, `--forks` option is an exception if you setup multiple hosts. In that case, use `--forks=1` to prevent multiple debuggers from invoking.
+  * As of v0.2.2, `--breakpoint TASK_NAME` option is supported. With this option, the debugger is invoked before running the task matching this name.
 
 2. When the debugger is invoked, issue commands for debug. For example, issue `error` command to check an error info, and `print` command  to check module's args and variables. See [Available Commands](#available-commands) to check the list of commands.
 
@@ -79,6 +80,7 @@ In this case, any changes to the source code will be reflected immediately.
 * [Fix an undefined variable error](https://github.com/ks888/ansible-playbook-debugger/blob/master/EXAMPLES.md#example3)
 * [Fix a wrong and complex argument](https://github.com/ks888/ansible-playbook-debugger/blob/master/EXAMPLES.md#example4)
 * [Check magic variables (hostvars, groups, etc.)](https://github.com/ks888/ansible-playbook-debugger/blob/master/EXAMPLES.md#example5)
+* [Set breakpoints](https://github.com/ks888/ansible-playbook-debugger/blob/master/EXAMPLES.md#example6)
 
 ## Available Commands
 
@@ -122,9 +124,13 @@ Delete the argument of the module. The usage is almost same as set command.
 
 Re-execute the task, and, if no error, run the remaining part of the playbook.
 
+If the debugger is invoked due to a breakpoint, it simply does the first-run of the task.
+
 ### c(cont(inue))
 
 Continue without the re-execution of the task.
+
+If the debugger is invoked due to a breakpoint, it simply does the first-run of the task.
 
 ### q(uit)
 
@@ -147,3 +153,5 @@ If you'd like to send a pull request, it is excellent if there is a test which s
 3. Run integration tests.
 
   `nosetests -d -v -w integration`
+
+All tests do not make a destructive change to your system.

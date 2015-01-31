@@ -262,3 +262,47 @@ testhost                   : ok=1    changed=0    unreachable=0    failed=1
 
 ~/src/ansible-playbook-debugger-demo% 
 ```
+
+<a name="example6"/>
+## Set breakpoints
+
+You can set breakpoints using the command line option. With this option, the debugger is invoked before running the task you specified. It will be useful when configuration results are not right even though `ansible-playbook` command ends as successful.
+
+The example below checks the variable in the breakpoint task.
+
+```bash
+~/src/ansible-playbook-debugger-demo% cat demo6.yml
+---
+- hosts: local
+  gather_facts: no
+  vars:
+    var1: defined_in_pb
+  tasks:
+    - name: register new var
+      set_fact:
+        var1: defined_dynamically
+
+    - name: any module
+      ping:
+
+~/src/ansible-playbook-debugger-demo% ansible-playbook-debugger demo6.yml -i inventory -vv \
+% -e var1=defined_external --breakpoint="any module"
+
+PLAY [local] ****************************************************************** 
+
+TASK: [register new var] ****************************************************** 
+ok: [testhost] => {"ansible_facts": {"var1": "defined_dynamically"}}
+
+TASK: [any module] ************************************************************ 
+Playbook debugger is invoked (breakpoint)
+(Apdb) print var1
+defined_external
+(Apdb) continue
+<127.0.0.1> REMOTE_MODULE ping
+ok: [testhost] => {"changed": false, "ping": "pong"}
+
+PLAY RECAP ******************************************************************** 
+testhost                   : ok=2    changed=0    unreachable=0    failed=0   
+
+~/src/ansible-playbook-debugger-demo% 
+```
