@@ -6,6 +6,7 @@
 * [Fix an undefined variable error](#example3)
 * [Fix a wrong and complex argument](#example4)
 * [Check magic variables (hostvars, groups, etc.)](#example5)
+* [Set breakpoints](#example6)
 
 <a name="example1"/>
 ## Fix a wrong argument
