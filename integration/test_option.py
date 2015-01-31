@@ -31,3 +31,9 @@ class OptionTest(unittest.TestCase):
         self.proc = pexpect.spawn(command)
         self.proc.expect('--breakpoint')  # the option only the debugger has
         self.proc.expect(pexpect.EOF)
+
+    def test_no_args(self):
+        command = 'ansible-playbook-debugger'
+        self.proc = pexpect.spawn(command)
+        self.proc.expect('--breakpoint')  # the option only the debugger has
+        self.proc.expect(pexpect.EOF)

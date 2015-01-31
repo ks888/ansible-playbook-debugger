@@ -5,3 +5,4 @@ htmlcov
 ansible_playbook_debugger.egg-info
 nose-*.egg
 .coverage
+integration/template_result.txt

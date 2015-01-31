@@ -29,8 +29,12 @@ def main(args):
     parser = argparse.ArgumentParser(epilog='Options available for ansible-playbook command are also available.')
     parser.add_argument('--version', action='version', version='%(prog)s ' + __version__)
     parser.add_argument('--breakpoint', action='append', default=[], help='invoke the debugger before running the task matching this name', metavar='TASK_NAME')
-    known_args, unknown_args = parser.parse_known_args()
+    known_args, unknown_args = parser.parse_known_args(args)
     breakpoint = known_args.breakpoint
+
+    if len(args) == 0:
+        parser.print_help(file=sys.stderr)
+        return 1
 
     dummy_runner = runner.Runner(host_list=[])
     action_loader = plugins.action_loader
