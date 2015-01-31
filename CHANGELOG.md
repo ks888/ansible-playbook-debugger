@@ -1,5 +1,13 @@
 # Changes
 
+## 0.2.2 - Jan 31, 2015
+
+* Support --breakpoint option
+* Fix can-not-redo bug on template module
+* Fix quit-command-not-actually-quit bug
+* Simplify docs and add more examples
+* Integrate two hooks to invoke the debugger to one hook so that debugger's behavior is unified.
+
 ## 0.2.1 - Jan 17, 2015
 
 * Enable to use [] to access list/dict in print command
