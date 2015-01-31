@@ -1,22 +1,52 @@
 # ansible-playbook-debugger
 
-A Debugger for Ansible Playbook
+`ansible-playbook-debugger` is the tool to debug a playook. This debugger is invoked when the task in the playbook fails, and enables you to check actually used module's args, variables, facts, and so on. Also, you can fix module's args in the debugger, and re-run the failed task (and if it is successful, the remaining part of the playbook runs).
 
-## Description
+For example, the task in the playbook below executes ping module, but *wrong_var* variable is undefined.
 
-Although `Ansible` is a powerful tool for configuration management, debugging its playbook is often bothersome. One of its reasons is an error message from ansible may not include enough information for debug. For example, variables and task's keywords are not included usually. Another reason is the time it takes to run a playbook. It may take a long time, and you may need to run the playbook several times to get more details and to see that the bug is fixed.
+```bash
+~/src/ansible-playbook-debugger-demo% cat demo3.yml 
+---
+- hosts: local
+  gather_facts: no
+  vars:
+    var1: value1
+  tasks:
+    - name: wrong variable
+      ping: data={{ wrong_var }}
+```
 
-`ansible-playbook-debugger` is the debugger to facilitate such a bothersome work. When a task fails, the debugger is invoked automatically. Then you can check the module's arguments, variables, and so on. Furthermore, you can change the module's arguments to fix a bug, and re-execute the task. If the re-execution is successful, the playbook continues to run as if there was no error.
+The debugger is invoked when the task runs. You can check the error and variables, replace *wrong_var* with *var1*, and redo the task.
 
-## Demo
+```bash
+~/src/ansible-playbook-debugger-demo% ansible-playbook-debugger demo3.yml -i inventory -vv
 
-Here is a demo which runs a playbook, invokes the debugger (since ping module's argument is wrong), and prints the module's argument.
+PLAY [local] ****************************************************************** 
 
-![Demo 1](http://i.imgur.com/O6vTvAf.gif)
+TASK: [wrong variable] ******************************************************** 
+Playbook debugger is invoked (AnsibleUndefinedVariable)
+(Apdb) error
+reason: AnsibleUndefinedVariable
+data: None
+comm_ok: None
+exception: One or more undefined variables: 'wrong_var' is undefined
+(Apdb) print wrong_var
+Not defined
+(Apdb) print var1
+value1
+(Apdb) set module_args data {{ var1 }}
+updated: data={{ var1 }}
+(Apdb) print module_args
+data={{ var1 }}
+(Apdb) redo
+<127.0.0.1> REMOTE_MODULE ping data=value1
+ok: [testhost] => {"changed": false, "ping": "value1"}
 
-Here is another demo continued from the first one. It deletes the module's wrong argument, sets the right one, re-executes the task, and continues to run the playbook.
+PLAY RECAP ******************************************************************** 
+testhost                   : ok=1    changed=0    unreachable=0    failed=0   
 
-![Demo 2](http://i.imgur.com/2YYH7F9.gif)
+~/src/ansible-playbook-debugger-demo% 
+```
 
 ## Installation
 
@@ -37,69 +67,12 @@ In this case, any changes to the source code will be reflected immediately.
 
 ## Usage
 
-It is easy to use this debugguer: when you call `ansible-playbook` command in a command line, just replace `ansible-playbook` with `ansible-playbook-debugger`. `ansible-playbook-debugger` command setups things so that the debugger is invoked if a task fails, and then calls `ansible-playbook` command.
+1. Replace `ansible-playbook` command with `ansible-playbook-debugger` command when you call `ansible-playbook` command in a command line.
+  * Although `ansible-playbook` options are still available, `--forks` option is an exception if you setup multiple hosts. In that case, use `--forks=1` to prevent multiple debuggers from invoking.
 
-Options available for `ansible-playbook` are also available for `ansible-playbook-debugger`. `--forks` option is an exception if you setup multiple hosts. In that case, use `--forks=1` to prevent multiple debuggers from invoking.
+2. When the debugger is invoked, issue commands for debug. For example, issue `error` command to check an error info, and `print` command  to check module's args and variables. See [Available Commands](#available-commands) to check the list of commands.
 
-After the debugger is invoked, you can issue commands for debug. For example, issue `error` command to check an error info, `print` command  to check module's args and variables, `set` command to change the module's args, and `redo` command to re-execute the task. See [Available Commands](#available-commands) to see the list of commands.
-
-### Example: check an error, then fix a wrong argument
-
-In this example, an argument to ping module is invalid, and the debugger is invoked. It checks the error message, deletes the wrong argument, set the new argument, then redoes the task.
-
-```bash
-~/src/ansible-playbook-debugger-demo% cat demo1.yml
----
-- hosts: local
-  gather_facts: no
-  tasks:
-    - name: ping with invalid module arg
-      ping: invalid_args=v
-
-    - name: ping again
-      ping:
-
-~/src/ansible-playbook-debugger-demo% cat inventory 
-[local]
-testhost ansible_ssh_host=127.0.0.1 ansible_connection=local
-
-~/src/ansible-playbook-debugger-demo% ansible-playbook-debugger -i inventory demo1.yml -vv      
-
-PLAY [local] ****************************************************************** 
-
-TASK: [ping with invalid module arg] ****************************************** 
-<127.0.0.1> REMOTE_MODULE ping invalid_args=v
-Playbook debugger is invoked (the task returned with a "failed" flag)
-(Apdb) error
-reason: the task returned with a "failed" flag
-data: {u'msg': u'unsupported parameter for module: invalid_args', u'failed': True}
-comm_ok: True
-exception: None
-(Apdb) print module_args
-module_args: invalid_args=v
-(Apdb) del module_args invalid_args
-deleted
-(Apdb) print module_args
-module_args: 
-(Apdb) set module_args data v
-updated: data=v
-(Apdb) print module_args
-module_args: data=v
-(Apdb) redo
-<127.0.0.1> REMOTE_MODULE ping data=v
-ok: [testhost] => {"changed": false, "ping": "v"}
-
-TASK: [ping again] ************************************************************ 
-<127.0.0.1> REMOTE_MODULE ping
-ok: [testhost] => {"changed": false, "ping": "pong"}
-
-PLAY RECAP ******************************************************************** 
-testhost                   : ok=2    changed=0    unreachable=0    failed=0
-
-~/src/ansible-playbook-debugger-demo% 
-```
-
-See [EXAMPLES](https://github.com/ks888/ansible-playbook-debugger/blob/master/EXAMPLES.md) to get more examples. Here is the table of contents:
+[EXAMPLES](https://github.com/ks888/ansible-playbook-debugger/blob/master/EXAMPLES.md) page has actual examples to use this debugger. Here is the table of contents:
 
 * [Fix a wrong argument](https://github.com/ks888/ansible-playbook-debugger/blob/master/EXAMPLES.md#example1)
 * [Check variables and facts](https://github.com/ks888/ansible-playbook-debugger/blob/master/EXAMPLES.md#example2)
@@ -137,9 +110,9 @@ Same as print command, but output is pretty printed.
 
 Set the argument of the module.
 
-If the first argument is `module_args`, *key*=*value* style argument is added to the module's args. To update the entire module_args, use `.` as *key*.
+If the first argument is `module_args`, *key*=*value* style argument is added (or updated) to the module's args. To update the entire module_args, use `.` as *key*.
 
-If the first argument is `complex_args`, *key* and *value* are added to module's complex args. *key* is the path to the location where *value* is added. Use dot notation to specify the child of lists and/or dicts. To update the entire complex_args, use `.` as *key*. *value* accepts JSON format as well as simple string.
+If the first argument is `complex_args`, *key* and *value* are added (or updated) to module's complex args. *key* is the path to the location where *value* is added. Use dot notation to specify the child of lists and/or dicts. To update the entire complex_args, use `.` as *key*. *value* accepts JSON format as well as simple string.
 
 ### del *module_args*|*complex_args* *key*
 
@@ -147,7 +120,7 @@ Delete the argument of the module. The usage is almost same as set command.
 
 ### r(edo)
 
-Re-execute the task, and, if no error, continue to run the playbook.
+Re-execute the task, and, if no error, run the remaining part of the playbook.
 
 ### c(cont(inue))
 
@@ -161,13 +134,11 @@ Quit from the debugger. The playbook execution is aborted.
 
 Contributions are very welcome, including bug reports, feature requests, and English correction of documents.
 
-If you'd like to report a bug, please include the steps to recreate the bug, and the versions of ansible-playbook-debugger, ansible, and python.
-
-If you'd like to send a pull request, please write a test which shows that the new feature works or the bug is fixed. Take the following steps to run tests:
+If you'd like to send a pull request, it is excellent if there is a test which shows that the new feature works or the bug is fixed. Take the following steps to run tests:
 
 1. Install packages for running tests.
 
-   `pip install -r requirements-dev.txt`
+  `pip install -r requirements-dev.txt`
 
 2. Run unit tests.
 
