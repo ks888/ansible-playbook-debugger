@@ -32,8 +32,7 @@ class WrongModuleArgsCaseTest(unittest.TestCase):
         self.proc.expect('(Apdb)')
 
         self.proc.sendline('redo')
-        self.proc.expect('REMOTE_MODULE ping data=value')
-        self.proc.expect('ok:')
+        self.proc.expect('"ping": "value"')
 
     def test_continue(self):
         self.proc.sendline('del module_args invalid_arg')
@@ -76,8 +75,7 @@ class WrongComplexArgsCaseTest(unittest.TestCase):
         self.proc.expect('(Apdb)')
 
         self.proc.sendline('redo')
-        self.proc.expect('REMOTE_MODULE ping data=value')
-        self.proc.expect('ok:')
+        self.proc.expect('"ping": "value"')
 
 
 class WrongTemplateCaseTest(unittest.TestCase):
@@ -96,8 +94,7 @@ class WrongTemplateCaseTest(unittest.TestCase):
         self.proc.expect('(Apdb)')
 
         self.proc.sendline('redo')
-        self.proc.expect('REMOTE_MODULE ping data=value1')
-        self.proc.expect('ok:')
+        self.proc.expect('"ping": "value1"')
 
     def test_del_module_args_set_complex_args_and_redo(self):
         self.proc.sendline('del module_args .')
@@ -107,8 +104,7 @@ class WrongTemplateCaseTest(unittest.TestCase):
         self.proc.expect('(Apdb)')
 
         self.proc.sendline('redo')
-        self.proc.expect('REMOTE_MODULE ping data=value1')
-        self.proc.expect('ok:')
+        self.proc.expect('"ping": "value1"')
 
     def test_set_dict_var_to_complex_args(self):
         self.proc.sendline('del module_args .')
@@ -118,9 +114,7 @@ class WrongTemplateCaseTest(unittest.TestCase):
         self.proc.expect('(Apdb)')
 
         self.proc.sendline('redo')
-        self.proc.expect('REMOTE_MODULE ping')
-        self.proc.expect('ok:')
-        self.proc.expect('value3')
+        self.proc.expect('"ping": {"var3": "value3"}')
 
 
 class MultihostInvalidArgsCaseTest(unittest.TestCase):
@@ -141,9 +135,7 @@ class MultihostInvalidArgsCaseTest(unittest.TestCase):
             self.proc.expect('(Apdb)')
 
             self.proc.sendline('redo')
-            self.proc.expect('REMOTE_MODULE ping')
-
-        self.proc.expect('ok:')
+            self.proc.expect('"ping": "pong"')
 
 
 class MultihostWrongTemplateCaseTest(unittest.TestCase):
@@ -164,6 +156,4 @@ class MultihostWrongTemplateCaseTest(unittest.TestCase):
             self.proc.expect('(Apdb)')
 
             self.proc.sendline('redo')
-            self.proc.expect('REMOTE_MODULE ping data=value1')
-
-        self.proc.expect('ok:')
+            self.proc.expect('"ping": "value1"')
