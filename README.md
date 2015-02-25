@@ -1,6 +1,6 @@
 # ansible-playbook-debugger
 
-`ansible-playbook-debugger` is the tool to debug a playook. This debugger is invoked when the task in the playbook fails, and enables you to check actually used module's args, variables, facts, and so on. Also, you can fix module's args in the debugger, and re-run the failed task (and if it is successful, the remaining part of the playbook runs).
+`ansible-playbook-debugger` is the tool to debug a playbook. This debugger is invoked when the task in the playbook fails, and enables you to check actually used module's args, variables, facts, and so on. Also, you can fix module's args in the debugger, and re-run the failed task (and if it is successful, the remaining part of the playbook runs).
 
 For example, the task in the playbook below executes ping module, but *wrong_var* variable is undefined.
 
