@@ -82,6 +82,8 @@ In this case, any changes to the source code will be reflected immediately.
 * [Check magic variables (hostvars, groups, etc.)](https://github.com/ks888/ansible-playbook-debugger/blob/master/EXAMPLES.md#example5)
 * [Set breakpoints](https://github.com/ks888/ansible-playbook-debugger/blob/master/EXAMPLES.md#example6)
 
+If you have trouble with this debugger, use [the mailing list](https://groups.google.com/d/forum/ansible-playbook-debugger).
+
 ## Available Commands
 
 ### h(elp) [*command*]
@@ -138,7 +140,7 @@ Quit from the debugger. The playbook execution is aborted.
 
 ## Contributing
 
-Contributions are very welcome, including bug reports, feature requests, and English correction of documents.
+Contributions are very welcome, including bug reports, idea sharing, feature requests, and English correction of documents.
 
 If you'd like to send a pull request, it is excellent if there is a test which shows that the new feature works or the bug is fixed. Take the following steps to run tests:
 
