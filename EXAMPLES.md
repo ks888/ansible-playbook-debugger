@@ -153,12 +153,40 @@ testhost                   : ok=1    changed=0    unreachable=0    failed=0
 ~/src/ansible-playbook-debugger-demo% 
 ```
 
-If the debugger is invoked because a template file used in the template module has an undefined variable error, fix a template file and then issue `redo` command.
-
 <a name="example4"/>
 ## Fix a wrong and complex argument
 
-A module has two types of arguments: module_args and complex_args. module_args is the simple key=value style arguments, and complex_args is used for representing complex structures like lists and dicts. In this example, complex_args includes an error, and is replaced with new one.
+Ansible module has two types of arguments: module_args and complex_args. If you use key=value style to pass arguments, these are module_args. If you use key: value style, these are complex_args. It is used to represent complex structures like lists and dicts.
+
+The playbook below describes this point.
+
+```bash
+---
+- hosts: local
+  gather_facts: no
+  tasks:
+    - name: key1 and key2 are module_args
+      some_module: key1=value1 key2=value2
+
+    - name: key1 and key2 are complex_args
+      some_module:
+        key1: value1
+        key2: value2
+
+    - name: key1 and key2 are complex_args
+      some_module:
+      args:
+        key1: value1
+        key2: value2
+
+    - name: key1 is module_args and key2 is complex_args
+      some_module: key1=value1
+      args:
+        key2: value2
+
+```
+
+This debugger can update complex_args as well as module_args. In the example below, complex_args includes an error, and is updated.
 
 ```bash
 ~/src/ansible-playbook-debugger-demo% cat demo4.yml

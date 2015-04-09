@@ -100,11 +100,15 @@ Show the details about this task execution.
 
 ### p(rint) [*arg*]
 
-Print the value of the variable *arg*.
+Print variable *arg*.
 
-As the special case, if *arg* is `module_name`, print the module name. Also, if `module_args`, print the simple key=value style args of the module, and if `complex_args`, print the complex args like lists and dicts.
+There are some special cases:
+* With no argument, print all variables.
+* If *arg* is `module_name`, print the module name.
+* If `module_args`, print the key=value style arguments (module_args) of the module.
+* If `complex_args`, print the key: value style arguments (complex_args) of the module.
 
-With no argument, print all the variables and its value.
+See [this example](https://github.com/ks888/ansible-playbook-debugger/blob/master/EXAMPLES.md#example4) to know the difference between module_args and complex_args.
 
 ### pp [*arg*]
 
@@ -112,11 +116,13 @@ Same as print command, but output is pretty printed.
 
 ### set *module_args*|*complex_args* *key* *value*
 
-Set the argument of the module.
+Add or update the module's argument.
 
-If the first argument is `module_args`, *key*=*value* style argument is added (or updated) to the module's args. To update the entire module_args, use `.` as *key*.
+If the first argument is `module_args`, *key* and *value* are added to module_args.
+If `complex_args`, *key* and *value* are added to complex_args.
+See [this example](https://github.com/ks888/ansible-playbook-debugger/blob/master/EXAMPLES.md#example4) to know the difference between module_args and complex_args.
 
-If the first argument is `complex_args`, *key* and *value* are added (or updated) to module's complex args. *key* is the path to the location where *value* is added. Use dot notation to specify the child of lists and/or dicts. To update the entire complex_args, use `.` as *key*. *value* accepts JSON format as well as simple string.
+As the special case, if the *key* is `.`, the entire arguments are replaced with *value*.
 
 ### del *module_args*|*complex_args* *key*
 
