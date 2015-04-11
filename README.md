@@ -69,7 +69,7 @@ In this case, any changes to the source code will be reflected immediately.
 
 1. Replace `ansible-playbook` command with `ansible-playbook-debugger` command when you call `ansible-playbook` command in a command line.
   * Although `ansible-playbook` options are still available, `--forks` option is an exception if you setup multiple hosts. In that case, use `--forks=1` to prevent multiple debuggers from invoking.
-  * As of v0.2.2, `--breakpoint TASK_NAME` option is supported. With this option, the debugger is invoked before running the task matching this name.
+  * As of v0.2.2, `--breakpoint TASK_NAME` option is supported. With this option, the debugger is invoked before running the task matching this name. See [EXAMPLES page](https://github.com/ks888/ansible-playbook-debugger/blob/master/EXAMPLES.md#example5) for details.
 
 2. When the debugger is invoked, issue commands for debug. Frequently used commands are:
   * `error` or `e` command to check an error.
@@ -83,12 +83,12 @@ In this case, any changes to the source code will be reflected immediately.
 
 [EXAMPLES](https://github.com/ks888/ansible-playbook-debugger/blob/master/EXAMPLES.md) page has actual examples to use this debugger. Here is the table of contents:
 
-* [Fix a wrong argument](https://github.com/ks888/ansible-playbook-debugger/blob/master/EXAMPLES.md#example1)
+* [Fix the wrong argument of a module](https://github.com/ks888/ansible-playbook-debugger/blob/master/EXAMPLES.md#example1)
 * [Check variables and facts](https://github.com/ks888/ansible-playbook-debugger/blob/master/EXAMPLES.md#example2)
-* [Fix an undefined variable error](https://github.com/ks888/ansible-playbook-debugger/blob/master/EXAMPLES.md#example3)
+* [Update the entire arguments of a module](https://github.com/ks888/ansible-playbook-debugger/blob/master/EXAMPLES.md#example3)
 * [Fix a wrong and complex argument](https://github.com/ks888/ansible-playbook-debugger/blob/master/EXAMPLES.md#example4)
-* [Check magic variables (hostvars, groups, etc.)](https://github.com/ks888/ansible-playbook-debugger/blob/master/EXAMPLES.md#example5)
-* [Set breakpoints](https://github.com/ks888/ansible-playbook-debugger/blob/master/EXAMPLES.md#example6)
+* [Set breakpoints](https://github.com/ks888/ansible-playbook-debugger/blob/master/EXAMPLES.md#example5)
+* [Check magic variables (hostvars, groups, etc.)](https://github.com/ks888/ansible-playbook-debugger/blob/master/EXAMPLES.md#example6)
 
 If you have trouble with this debugger, ask on [the mailing list](https://groups.google.com/d/forum/ansible-playbook-debugger).
 
