@@ -71,7 +71,15 @@ In this case, any changes to the source code will be reflected immediately.
   * Although `ansible-playbook` options are still available, `--forks` option is an exception if you setup multiple hosts. In that case, use `--forks=1` to prevent multiple debuggers from invoking.
   * As of v0.2.2, `--breakpoint TASK_NAME` option is supported. With this option, the debugger is invoked before running the task matching this name.
 
-2. When the debugger is invoked, issue commands for debug. For example, issue `error` command to check an error info, and `print` command  to check module's args and variables. See [Available Commands](#available-commands) to check the list of commands.
+2. When the debugger is invoked, issue commands for debug. Frequently used commands are:
+  * `error` or `e` command to check an error.
+  * `list` or `l` command to check the details of a failed task, including the module's arguments.
+  * `print variable` or `p variable` command to print a variable.
+  * `set` command to add or update a module's argument.
+  * `redo` or `r` command to re-execute a task.
+  * `quit` or `q` command to quit from the debugger.
+
+  See [Available Commands](#available-commands) to check the list of commands.
 
 [EXAMPLES](https://github.com/ks888/ansible-playbook-debugger/blob/master/EXAMPLES.md) page has actual examples to use this debugger. Here is the table of contents:
 
@@ -82,7 +90,7 @@ In this case, any changes to the source code will be reflected immediately.
 * [Check magic variables (hostvars, groups, etc.)](https://github.com/ks888/ansible-playbook-debugger/blob/master/EXAMPLES.md#example5)
 * [Set breakpoints](https://github.com/ks888/ansible-playbook-debugger/blob/master/EXAMPLES.md#example6)
 
-If you have trouble with this debugger, use [the mailing list](https://groups.google.com/d/forum/ansible-playbook-debugger).
+If you have trouble with this debugger, ask on [the mailing list](https://groups.google.com/d/forum/ansible-playbook-debugger).
 
 ## Available Commands
 
@@ -116,7 +124,7 @@ Same as print command, but output is pretty printed.
 
 ### set *module_args*|*complex_args* *key* *value*
 
-Add or update the module's argument.
+Add or update a module's argument.
 
 If the first argument is `module_args`, *key* and *value* are added to module_args.
 If `complex_args`, *key* and *value* are added to complex_args.
