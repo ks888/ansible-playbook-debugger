@@ -18,6 +18,7 @@ from ansibledebugger import utils
 
 class Interpreter(cmd.Cmd):
     prompt = '(Apdb) '  # Ansible Playbook DeBugger
+    prompt_continuous = '> '  # used when multiple lines are expected
 
     def __init__(self, task_info, error_info, next_action, optional_info={}):
         self.intro = "Playbook debugger is invoked (%s)" % error_info.reason
@@ -34,6 +35,21 @@ class Interpreter(cmd.Cmd):
         except KeyboardInterrupt:
             self.intro = " "
             self.cmdloop()
+
+    def input_multiline(self, prompt):
+        """repetitively read a line from input until an empty line comes."""
+        lines = ''
+        while True:
+            try:
+                line = raw_input(prompt)
+            except (EOFError, KeyboardInterrupt):
+                return None
+
+            lines += '\n' + line
+            if line == '':
+                break
+
+        return lines
 
     do_h = cmd.Cmd.do_help
 
@@ -179,8 +195,25 @@ Same as print command, but output is pretty printed.
         self.task_info.module_args = arg
         display('assigned: %s' % (self.task_info.module_args))
 
-    def assign_complex_args(self, arg):
-        pass
+    def assign_complex_args(self, arg_first):
+        arg_rest = self.input_multiline(self.prompt_continuous)
+        if arg_rest is None:
+            print 'cancelled'
+            return
+
+        arg_yaml = arg_first + arg_rest
+        arg = ansible.utils.parse_yaml(arg_yaml)
+        if arg is None:
+            # arg_yaml is effectively empty
+            arg = {}
+
+        if not isinstance(arg, dict):
+            display('complex_args has to be dict.')
+            return
+
+        self.task_info.complex_args = arg
+
+        display('assigned')
 
     def do_set(self, arg):
         """set module_args|complex_args key value

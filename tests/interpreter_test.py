@@ -200,6 +200,44 @@ class SimpleInterpreterTest(unittest.TestCase):
         self.assertEqual(new_module_args, interpreter.task_info.module_args)
 
     @patch('sys.stdout', new_callable=StringIO)
+    def test_assign_complex_args_oneline(self, mock_stdout):
+        complex_args = {'key1': 'v1'}
+        interpreter = Interpreter(TaskInfo('', '', None, complex_args),
+                                  ErrorInfo(), None)
+
+        new_args = 'key2: v2'
+        with patch('__builtin__.raw_input', side_effect=['']):
+            interpreter.do_assign('complex_args %s' % (new_args))
+
+        expect = {'key2': 'v2'}
+        self.assertEqual(interpreter.task_info.complex_args, expect)
+
+    @patch('sys.stdout', new_callable=StringIO)
+    def test_assign_complex_args_multiline(self, mock_stdout):
+        complex_args = {'key1': 'v1'}
+        interpreter = Interpreter(TaskInfo('', '', None, complex_args),
+                                  ErrorInfo(), None)
+
+        new_args = ['key2: v2', 'key3:', '- key4: v4', '']
+        with patch('__builtin__.raw_input', side_effect=new_args[1:]):
+            interpreter.do_assign('complex_args %s' % (new_args[0]))
+
+        expect = {'key2': 'v2', 'key3': [{'key4': 'v4'}]}
+        self.assertEqual(interpreter.task_info.complex_args, expect)
+
+    @patch('sys.stdout', new_callable=StringIO)
+    def test_assign_complex_args_empty_args(self, mock_stdout):
+        complex_args = {'key1': 'v1'}
+        interpreter = Interpreter(TaskInfo('', '', None, complex_args),
+                                  ErrorInfo(), None)
+
+        with patch('__builtin__.raw_input', side_effect=['']):
+            interpreter.do_assign('complex_args')
+
+        expect = {}
+        self.assertEqual(interpreter.task_info.complex_args, expect)
+
+    @patch('sys.stdout', new_callable=StringIO)
     def test_set_module_args_add(self, mock_stdout):
         module_args = 'key1=v1 key2=v2'
         interpreter = Interpreter(TaskInfo('', module_args, None, None),
