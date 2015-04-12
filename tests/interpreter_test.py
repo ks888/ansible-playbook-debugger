@@ -168,6 +168,38 @@ class SimpleInterpreterTest(unittest.TestCase):
         self.assertIn(var_expect, mock_stdout.getvalue())
 
     @patch('sys.stdout', new_callable=StringIO)
+    def test_assign_module_args(self, mock_stdout):
+        module_args = 'key1=v1 key2=v2'
+        interpreter = Interpreter(TaskInfo('', module_args, None, None),
+                                  ErrorInfo(), None)
+
+        new_module_args = 'key3=v3 key4=v4'
+        interpreter.do_assign('module_args %s' % new_module_args)
+
+        self.assertEqual(new_module_args, interpreter.task_info.module_args)
+
+    @patch('sys.stdout', new_callable=StringIO)
+    def test_assign_module_args_empty_args(self, mock_stdout):
+        module_args = 'key1=v1 key2=v2'
+        interpreter = Interpreter(TaskInfo('', module_args, None, None),
+                                  ErrorInfo(), None)
+
+        interpreter.do_assign('module_args')
+
+        self.assertNotEqual(module_args, interpreter.task_info.module_args)
+
+    @patch('sys.stdout', new_callable=StringIO)
+    def test_assign_module_args_nonkv_args(self, mock_stdout):
+        module_args = 'old_command key1=v1 key2=v2'
+        interpreter = Interpreter(TaskInfo('', module_args, None, None),
+                                  ErrorInfo(), None)
+
+        new_module_args = 'new_command key3=v3 key4=v4'
+        interpreter.do_assign('module_args %s' % new_module_args)
+
+        self.assertEqual(new_module_args, interpreter.task_info.module_args)
+
+    @patch('sys.stdout', new_callable=StringIO)
     def test_set_module_args_add(self, mock_stdout):
         module_args = 'key1=v1 key2=v2'
         interpreter = Interpreter(TaskInfo('', module_args, None, None),

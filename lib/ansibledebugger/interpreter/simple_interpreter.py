@@ -156,6 +156,32 @@ Same as print command, but output is pretty printed.
             return pprint.pformat(str)
         return str
 
+    def do_assign(self, arg):
+        if arg is None or arg == '':
+            display('Invalid option. See help for usage.')
+            return
+
+        arg_split = arg.split(None, 1)
+        args_type = arg_split[0]
+        if len(arg_split) >= 2:
+            rest = arg_split[1]
+        else:
+            rest = ''
+
+        if args_type == 'module_args' or args_type == 'ma':
+            self.assign_module_args(rest)
+        elif args_type == 'complex_args' or args_type == 'ca':
+            self.assign_complex_args(rest)
+        else:
+            display('Invalid option. See help for usage.')
+
+    def assign_module_args(self, arg):
+        self.task_info.module_args = arg
+        display('assigned: %s' % (self.task_info.module_args))
+
+    def assign_complex_args(self, arg):
+        pass
+
     def do_set(self, arg):
         """set module_args|complex_args key value
 Add or update the module's argument.
