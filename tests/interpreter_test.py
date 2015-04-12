@@ -257,6 +257,17 @@ class SimpleInterpreterTest(unittest.TestCase):
         self.assertEqual(expected_kv, interpreter.task_info.module_args)
 
     @patch('sys.stdout', new_callable=StringIO)
+    def test_set_module_args_deprecated(self, mock_stdout):
+        interpreter = Interpreter(TaskInfo('', '', None, None),
+                                  ErrorInfo(), None)
+
+        key = 'key1'
+        value = 'v1'
+        interpreter.do_set('module_args %s %s' % (key, value))
+
+        self.assertIn('deprecated', mock_stdout.getvalue())
+
+    @patch('sys.stdout', new_callable=StringIO)
     def test_set_complex_args_add_sibling(self, mock_stdout):
         complex_args = {'key1': 'v1'}
         interpreter = Interpreter(TaskInfo('', '', None, complex_args),
@@ -320,6 +331,17 @@ class SimpleInterpreterTest(unittest.TestCase):
 
         expect = {'key2': 'v2'}
         self.assertEqual(interpreter.task_info.complex_args, expect)
+
+    @patch('sys.stdout', new_callable=StringIO)
+    def test_set_complex_args_deprecated(self, mock_stdout):
+        interpreter = Interpreter(TaskInfo('', '', None, None),
+                                  ErrorInfo(), None)
+
+        key = 'key1'
+        value = 'v1'
+        interpreter.do_set('complex_args %s %s' % (key, value))
+
+        self.assertIn('deprecated', mock_stdout.getvalue())
 
     @patch('sys.stdout', new_callable=StringIO)
     def test_del_module_args(self, mock_stdout):

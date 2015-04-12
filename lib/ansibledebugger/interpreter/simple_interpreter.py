@@ -185,6 +185,8 @@ As the special case, if the *key* is `.`, the entire arguments are replaced with
             display('Invalid option. See help for usage.')
 
     def set_module_args(self, key, value):
+        print 'WARNING: `set module_args` is deprecated. Use `update module_args` instead.'
+
         if key == '.':
             self.task_info.module_args = value
         else:
@@ -212,6 +214,8 @@ As the special case, if the *key* is `.`, the entire arguments are replaced with
         display('updated: %s' % (self.task_info.module_args))
 
     def set_complex_args(self, key, value):
+        print 'WARNING: `set complex_args` is deprecated. Use `update complex_args` instead.'
+
         if key == '.':
             key_list = []
         else:
