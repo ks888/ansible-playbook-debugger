@@ -6,6 +6,7 @@ import pprint
 import re
 import readline
 import sys
+import yaml
 
 import ansible.utils  # unused, but necessary to avoid circular imports
 from ansible.utils import template
@@ -198,11 +199,16 @@ Same as print command, but output is pretty printed.
     def assign_complex_args(self, arg_first):
         arg_rest = self.input_multiline(self.prompt_continuous)
         if arg_rest is None:
-            print 'cancelled'
+            display('cancelled')
             return
 
         arg_yaml = arg_first + arg_rest
-        arg = ansible.utils.parse_yaml(arg_yaml)
+        try:
+            arg = ansible.utils.parse_yaml(arg_yaml)
+        except yaml.YAMLError as ex:
+            display('Failed to parse YAML: %s' % ex)
+            return
+
         if arg is None:
             # arg_yaml is effectively empty
             arg = {}
@@ -244,7 +250,7 @@ As the special case, if the *key* is `.`, the entire arguments are replaced with
             display('Invalid option. See help for usage.')
 
     def set_module_args(self, key, value):
-        print 'WARNING: `set module_args` is deprecated. Use `update module_args` instead.'
+        display('WARNING: `set module_args` is deprecated. Use `update module_args` instead.')
 
         if key == '.':
             self.task_info.module_args = value
@@ -273,7 +279,7 @@ As the special case, if the *key* is `.`, the entire arguments are replaced with
         display('updated: %s' % (self.task_info.module_args))
 
     def set_complex_args(self, key, value):
-        print 'WARNING: `set complex_args` is deprecated. Use `update complex_args` instead.'
+        display('WARNING: `set complex_args` is deprecated. Use `update complex_args` instead.')
 
         if key == '.':
             key_list = []

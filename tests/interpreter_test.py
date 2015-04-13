@@ -238,6 +238,18 @@ class SimpleInterpreterTest(unittest.TestCase):
         self.assertEqual(interpreter.task_info.complex_args, expect)
 
     @patch('sys.stdout', new_callable=StringIO)
+    def test_assign_complex_args_wrong_yaml(self, mock_stdout):
+        interpreter = Interpreter(TaskInfo('', '', None, None),
+                                  ErrorInfo(), None)
+
+        new_args = ['key2: v2', '- key3: v3', '']
+        with patch('__builtin__.raw_input', side_effect=new_args[1:]):
+            interpreter.do_assign('complex_args %s' % (new_args[0]))
+
+        expect = 'Failed to parse YAML'
+        self.assertIn(expect, mock_stdout.getvalue())
+
+    @patch('sys.stdout', new_callable=StringIO)
     def test_set_module_args_add(self, mock_stdout):
         module_args = 'key1=v1 key2=v2'
         interpreter = Interpreter(TaskInfo('', module_args, None, None),
