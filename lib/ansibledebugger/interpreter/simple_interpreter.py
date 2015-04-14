@@ -174,6 +174,13 @@ Same as print command, but output is pretty printed.
         return str
 
     def do_assign(self, arg):
+        """assign module_args|ma|complex_args|ca ...
+Replace module_args or complex_args with new values.
+
+* To see how to replace module_args, call `help assign_module_args|assign_ma`.
+* To see how to replace complex_args, call `help assign_complex_args|assign_ca`.
+* Use `update` command for partial updates of module_args and/or complex_args.
+"""
         if arg is None or arg == '':
             display('Invalid option. See help for usage.')
             return
@@ -193,10 +200,21 @@ Same as print command, but output is pretty printed.
             display('Invalid option. See help for usage.')
 
     def assign_module_args(self, arg):
+        """assign module_args|ma [key1=value1 key2=value2 ...]
+Replace module_args with new key=value style arguments.
+
+* To replace key: value style arguments, use `assign complex_args`.
+"""
         self.task_info.module_args = arg
         display('assigned: %s' % (self.task_info.module_args))
 
     def assign_complex_args(self, arg_first):
+        """assign complex_args|ca [args in YAML]
+Replace complex_args with new args in YAML.
+
+* Args are expected to be multiline. Enter an empty line to show the end of args.
+* To replace key=value style arguments, use `assign module_args`.
+"""
         arg_rest = self.input_multiline(self.prompt_continuous)
         if arg_rest is None:
             display('cancelled')
@@ -220,6 +238,16 @@ Same as print command, but output is pretty printed.
         self.task_info.complex_args = arg
 
         display('assigned')
+
+    def help_assign_module_args(self):
+        display(self.assign_module_args.__doc__)
+
+    help_assign_ma = help_assign_module_args
+
+    def help_assign_complex_args(self):
+        display(self.assign_complex_args.__doc__)
+
+    help_assign_ca = help_assign_complex_args
 
     def do_set(self, arg):
         """set module_args|complex_args key value
