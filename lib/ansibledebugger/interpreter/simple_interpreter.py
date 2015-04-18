@@ -37,46 +37,6 @@ class Interpreter(cmd.Cmd):
             self.intro = " "
             self.cmdloop()
 
-    def input_multiline(self, prompt):
-        """repetitively read a line from input until an empty line comes."""
-        lines = ''
-        while True:
-            try:
-                line = raw_input(prompt)
-            except (EOFError, KeyboardInterrupt):
-                return None
-
-            lines += '\n' + line
-            if line == '':
-                break
-
-        return lines
-
-    def yaml_format(self, data, head_indent=0):
-        """format *data* as yaml. *head_indent* indicates the number of
-        spaces at the head of each line.
-        """
-        data_yaml = yaml.safe_dump(data, default_flow_style=False)
-        # remove confusing ... line, and the last line break
-        data_yaml = data_yaml.replace('...\n', '')[:-1]
-
-        indent = ' ' * head_indent
-        data_yaml = indent + data_yaml.replace('\n', '\n' + indent)
-
-        return data_yaml
-
-    def get_value(self, varname):
-        """Get a variable's value by applying a template.
-        If the value is dict or list, *varname* may include '.' or '[]'
-        to get the content of dict or list.
-        * For example, if the value of variable "var" is {"k": "v"},
-          get_value("var.k") will return "v".
-        """
-        value = template.template('.', '{{ %s }}' % varname, self.task_info.vars)
-        if '{{' in value:
-            value = 'Not defined'
-        return value
-
     do_h = cmd.Cmd.do_help
 
     def do_error(self, arg):
@@ -122,11 +82,11 @@ Show the details about this task execution.
 
         display(template.format('complex args', ''))
         if self.task_info.complex_args != {}:
-            complex_args_yaml = self.yaml_format(self.task_info.complex_args, 2)
+            complex_args_yaml = Interpreter.yaml_format(self.task_info.complex_args, 2)
             display('%s' % (complex_args_yaml))
 
         kws = self.get_keyword_list()
-        kws_yaml = self.yaml_format(kws, 2)
+        kws_yaml = Interpreter.yaml_format(kws, 2)
         display(template.format('keyword', ''))
         display('%s' % (kws_yaml))
 
@@ -180,13 +140,13 @@ Same as print command, but output is pretty printed.
         display('%s' % (self.task_info.module_args))
 
     def print_complex_args(self, arg):
-        complex_args_yaml = self.yaml_format(self.task_info.complex_args)
+        complex_args_yaml = Interpreter.yaml_format(self.task_info.complex_args)
         display('%s' % (complex_args_yaml))
 
     def print_var(self, arg):
         try:
             value = self.get_value(arg)
-            value_yaml = self.yaml_format(value)
+            value_yaml = Interpreter.yaml_format(value)
             display('%s' % (value_yaml))
 
         except Exception, ex:
@@ -196,7 +156,7 @@ Same as print command, but output is pretty printed.
         for key in self.task_info.vars.iterkeys():
             try:
                 value = self.get_value(key)
-                value_yaml = self.yaml_format(value, 2)
+                value_yaml = Interpreter.yaml_format(value, 2)
                 display('%s:\n%s' % (key, value_yaml))
 
             except Exception, ex:
@@ -244,7 +204,7 @@ Replace complex_args with new args in YAML.
 * Args are expected to be multiline. Enter an empty line to show the end of args.
 * To replace key=value style arguments, use `assign module_args`.
 """
-        arg_rest = self.input_multiline(self.prompt_continuous)
+        arg_rest = Interpreter.input_multiline(self.prompt_continuous)
         if arg_rest is None:
             display('cancelled')
             return
@@ -510,6 +470,48 @@ as set command.
                     pass
 
         return kws
+
+    def get_value(self, varname):
+        """Get a variable's value by applying a template.
+        If the value is dict or list, *varname* may include '.' or '[]'
+        to get the content of dict or list.
+        * For example, if the value of variable "var" is {"k": "v"},
+          get_value("var.k") will return "v".
+        """
+        value = template.template('.', '{{ %s }}' % varname, self.task_info.vars)
+        if '{{' in value:
+            value = 'Not defined'
+        return value
+
+    @classmethod
+    def input_multiline(cls, prompt):
+        """repetitively read a line from input until an empty line comes."""
+        lines = ''
+        while True:
+            try:
+                line = raw_input(prompt)
+            except (EOFError, KeyboardInterrupt):
+                return None
+
+            lines += '\n' + line
+            if line == '':
+                break
+
+        return lines
+
+    @classmethod
+    def yaml_format(cls, data, head_indent=0):
+        """format *data* as yaml. *head_indent* indicates the number of
+        spaces at the head of each line.
+        """
+        data_yaml = yaml.safe_dump(data, default_flow_style=False)
+        # remove confusing ... line, and the last line break
+        data_yaml = data_yaml.replace('...\n', '')[:-1]
+
+        indent = ' ' * head_indent
+        data_yaml = indent + data_yaml.replace('\n', '\n' + indent)
+
+        return data_yaml
 
     @classmethod
     def dot_str_to_key_list(cls, dot_str):
