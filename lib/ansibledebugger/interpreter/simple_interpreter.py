@@ -109,7 +109,7 @@ Show the details about this task execution.
 
     do_l = do_list
 
-    def do_print(self, arg, pp=False):
+    def do_print(self, arg):
         """p(rint) [arg]
 Print variable *arg*.
 
@@ -120,19 +120,19 @@ There are some special cases:
 * If `complex_args` or `ca`, print the key: value style arguments of the module.
 """
         if arg is None or arg == '':
-            self.print_module_name(arg, pp)
-            self.print_module_args(arg, pp)
-            self.print_complex_args(arg, pp)
-            self.print_all_vars(pp)
+            self.print_module_name(arg)
+            self.print_module_args(arg)
+            self.print_complex_args(arg)
+            self.print_all_vars()
         else:
             if arg == 'module_name':
-                self.print_module_name(arg, pp)
+                self.print_module_name(arg)
             elif arg == 'module_args' or arg == 'ma':
-                self.print_module_args(arg, pp)
+                self.print_module_args(arg)
             elif arg == 'complex_args' or arg == 'ca':
-                self.print_complex_args(arg, pp)
+                self.print_complex_args(arg)
             else:
-                self.print_var(arg, pp)
+                self.print_var(arg)
 
     do_p = do_print
 
@@ -140,21 +140,19 @@ There are some special cases:
         """pp [arg]
 Same as print command, but output is pretty printed.
 """
-        self.do_print(arg, pp=True)
+        # Actually same as p command so far
+        self.do_print(arg)
 
-    def print_module_name(self, arg, pp=False):
-        module_name = self.task_info.module_name
-        display('%s' % (self.pformat_if_pp(module_name, pp)))
+    def print_module_name(self, arg):
+        display('%s' % (self.task_info.module_name))
 
-    def print_module_args(self, arg, pp=False):
-        module_args = self.task_info.module_args
-        display('%s' % (self.pformat_if_pp(module_args, pp)))
+    def print_module_args(self, arg):
+        display('%s' % (self.task_info.module_args))
 
-    def print_complex_args(self, arg, pp=False):
-        complex_args = self.task_info.complex_args
-        display('%s' % (self.pformat_if_pp(complex_args, pp)))
+    def print_complex_args(self, arg):
+        display('%s' % (self.task_info.complex_args))
 
-    def print_var(self, arg, pp=False):
+    def print_var(self, arg):
         try:
             value = template.template('.', '{{ %s }}' % arg, self.task_info.vars)
             if '{{' in value:
@@ -162,16 +160,11 @@ Same as print command, but output is pretty printed.
         except Exception, ex:
             value = str(ex)
 
-        display('%s' % (self.pformat_if_pp(value, pp)))
+        display('%s' % (value))
 
-    def print_all_vars(self, pp=False):
+    def print_all_vars(self):
         for k, v in self.task_info.vars.iteritems():
-            display('%s: %s' % (k, self.pformat_if_pp(v, pp)))
-
-    def pformat_if_pp(self, str, pp):
-        if pp:
-            return pprint.pformat(str)
-        return str
+            display('%s: %s' % (k, v))
 
     def do_assign(self, arg):
         """assign module_args|ma|complex_args|ca ...
