@@ -52,6 +52,23 @@ class Interpreter(cmd.Cmd):
 
         return lines
 
+    def yaml_format(self, data):
+        data_yaml = yaml.safe_dump(data, default_flow_style=False)
+        # remove confusing ... line, and the last line break
+        return data_yaml.replace('...\n', '')[:-1]
+
+    def get_value(self, varname):
+        """Get a variable's value by applying a template.
+        If the value is dict or list, *varname* may include '.' or '[]'
+        to get the content of dict or list.
+        * For example, if the value of variable "var" is {"k": "v"},
+          get_value("var.k") will return "v".
+        """
+        value = template.template('.', '{{ %s }}' % varname, self.task_info.vars)
+        if '{{' in value:
+            value = 'Not defined'
+        return value
+
     do_h = cmd.Cmd.do_help
 
     def do_error(self, arg):
@@ -120,9 +137,6 @@ There are some special cases:
 * If `complex_args` or `ca`, print the key: value style arguments of the module.
 """
         if arg is None or arg == '':
-            self.print_module_name(arg)
-            self.print_module_args(arg)
-            self.print_complex_args(arg)
             self.print_all_vars()
         else:
             if arg == 'module_name':
@@ -150,21 +164,29 @@ Same as print command, but output is pretty printed.
         display('%s' % (self.task_info.module_args))
 
     def print_complex_args(self, arg):
-        display('%s' % (self.task_info.complex_args))
+        complex_args_yaml = self.yaml_format(self.task_info.complex_args)
+        display('%s' % (complex_args_yaml))
 
     def print_var(self, arg):
         try:
-            value = template.template('.', '{{ %s }}' % arg, self.task_info.vars)
-            if '{{' in value:
-                value = 'Not defined'
-        except Exception, ex:
-            value = str(ex)
+            value = self.get_value(arg)
+            value_yaml = self.yaml_format(value)
+            display('%s' % (value_yaml))
 
-        display('%s' % (value))
+        except Exception, ex:
+            display('%s' % str(ex))
 
     def print_all_vars(self):
-        for k, v in self.task_info.vars.iteritems():
-            display('%s: %s' % (k, v))
+        for key in self.task_info.vars.iterkeys():
+            try:
+                value = self.get_value(key)
+                value_yaml = self.yaml_format(value)
+                # indent
+                value_yaml = '\n'.join(map(lambda line: '  ' + line, value_yaml.split('\n')))
+                display('%s:\n%s' % (key, value_yaml))
+
+            except Exception, ex:
+                display('%s' % str(ex))
 
     def do_assign(self, arg):
         """assign module_args|ma|complex_args|ca ...

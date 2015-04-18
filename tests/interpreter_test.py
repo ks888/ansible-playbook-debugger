@@ -14,7 +14,7 @@ def dataset():
     module_name = 'test module'
     module_args = 'ma_k=ma_v'
     complex_args = {'ca_k': 'ca_v'}
-    complex_args_expect = str(complex_args)
+    complex_args_expect = 'ca_k: ca_v'
     vars = {'v_k': 'v_v'}
     vars_expect = 'v_v'
 
@@ -83,9 +83,6 @@ class SimpleInterpreterTest(unittest.TestCase):
         interpreter, module_name, module_args, complex_args_expect, vars_expect = dataset()
         interpreter.do_p(None)
 
-        self.assertIn(module_name, mock_stdout.getvalue())
-        self.assertIn(module_args, mock_stdout.getvalue())
-        self.assertIn(complex_args_expect, mock_stdout.getvalue())
         self.assertIn(vars_expect, mock_stdout.getvalue())
 
     @patch('sys.stdout', new_callable=StringIO)
