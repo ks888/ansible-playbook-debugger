@@ -116,8 +116,8 @@ Print variable *arg*.
 There are some special cases:
 * With no argument, print all variables.
 * If *arg* is `module_name`, print the module name.
-* If `module_args`, print the key=value style arguments of the module.
-* If `complex_args`, print the key: value style arguments of the module.
+* If `module_args` or `ma`, print the key=value style arguments of the module.
+* If `complex_args` or `ca`, print the key: value style arguments of the module.
 """
         if arg is None or arg == '':
             self.print_module_name(arg, pp)
@@ -127,9 +127,9 @@ There are some special cases:
         else:
             if arg == 'module_name':
                 self.print_module_name(arg, pp)
-            elif arg == 'module_args':
+            elif arg == 'module_args' or arg == 'ma':
                 self.print_module_args(arg, pp)
-            elif arg == 'complex_args':
+            elif arg == 'complex_args' or arg == 'ca':
                 self.print_complex_args(arg, pp)
             else:
                 self.print_var(arg, pp)
