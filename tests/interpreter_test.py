@@ -52,9 +52,9 @@ class SimpleInterpreterTest(unittest.TestCase):
         module_name = 'test module'
         module_args = 'ma_k=ma_v'
         complex_args = {'ca_k': 'ca_v'}
-        complex_args_expect = str(complex_args)
+        complex_args_expect = 'ca_k: ca_v'
         keyword = {'ignore_errors': False}
-        keyword_expect = 'ignore_errors:False'
+        keyword_expect = 'ignore_errors: \'False\''
         hostname = 'test_host'
         actual_host_expect = 'actual_host'
         conn_mock = Mock(host=actual_host_expect)

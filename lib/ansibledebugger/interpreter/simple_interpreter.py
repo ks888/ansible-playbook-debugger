@@ -52,10 +52,18 @@ class Interpreter(cmd.Cmd):
 
         return lines
 
-    def yaml_format(self, data):
+    def yaml_format(self, data, head_indent=0):
+        """format *data* as yaml. *head_indent* indicates the number of
+        spaces at the head of each line.
+        """
         data_yaml = yaml.safe_dump(data, default_flow_style=False)
         # remove confusing ... line, and the last line break
-        return data_yaml.replace('...\n', '')[:-1]
+        data_yaml = data_yaml.replace('...\n', '')[:-1]
+
+        indent = ' ' * head_indent
+        data_yaml = indent + data_yaml.replace('\n', '\n' + indent)
+
+        return data_yaml
 
     def get_value(self, varname):
         """Get a variable's value by applying a template.
@@ -107,12 +115,20 @@ Show the details about this task execution.
 * 'actual host' is the target host. *delegate_to* keyword is considered.
 * 'groups' is the host's groups.
 """
-        template = '{0:<15} : {1}'
+        template = '{0:<12} : {1}'
         display(template.format('task name', self.task_info.task.name))
         display(template.format('module name', self.task_info.module_name))
         display(template.format('module args', self.task_info.module_args))
-        display(template.format('complex args', self.task_info.complex_args))
-        display(template.format('keyword', ', '.join(self.get_keyword_list())))
+
+        display(template.format('complex args', ''))
+        if self.task_info.complex_args != {}:
+            complex_args_yaml = self.yaml_format(self.task_info.complex_args, 2)
+            display('%s' % (complex_args_yaml))
+
+        kws = self.get_keyword_list()
+        kws_yaml = self.yaml_format(kws, 2)
+        display(template.format('keyword', ''))
+        display('%s' % (kws_yaml))
 
         display(template.format('hostname', self.task_info.vars.get('inventory_hostname', '')))
 
@@ -180,9 +196,7 @@ Same as print command, but output is pretty printed.
         for key in self.task_info.vars.iterkeys():
             try:
                 value = self.get_value(key)
-                value_yaml = self.yaml_format(value)
-                # indent
-                value_yaml = '\n'.join(map(lambda line: '  ' + line, value_yaml.split('\n')))
+                value_yaml = self.yaml_format(value, 2)
                 display('%s:\n%s' % (key, value_yaml))
 
             except Exception, ex:
@@ -481,17 +495,21 @@ as set command.
     do_c = do_cont = do_continue
 
     def get_keyword_list(self):
-        kw_list = []
+        kws = {}
 
         if not hasattr(Task, '__slots__'):
-            return kw_list
+            return kws
 
         for slot in Task.__slots__:
             if slot in self.task_info.vars:
-                kw = '%s:%s' % (slot, self.task_info.vars[slot])
-                kw_list.append(kw)
+                try:
+                    value = self.get_value(slot)
+                    kws[slot] = value
 
-        return kw_list
+                except Exception:
+                    pass
+
+        return kws
 
     @classmethod
     def dot_str_to_key_list(cls, dot_str):
