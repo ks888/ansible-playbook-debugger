@@ -238,6 +238,75 @@ Replace complex_args with new args in YAML.
 
     help_assign_ca = help_assign_complex_args
 
+    def do_update(self, arg):
+        """update module_args|ma|complex_args|ca ...
+Partially update module_args or complex_args.
+
+* To see how to update module_args, call `help update_module_args|update_ma`.
+* To see how to update complex_args, call `help update_complex_args|update_ca`.
+* Use `assign` command to totally replace module_args and/or complex_args.
+"""
+        if arg is None or arg == '':
+            display('Invalid option. See help for usage.')
+            return
+
+        arg_split = arg.split(None, 1)
+        args_type = arg_split[0]
+        if len(arg_split) >= 2:
+            rest = arg_split[1]
+        else:
+            rest = ''
+
+        if args_type == 'module_args' or args_type == 'ma':
+            self.update_module_args(rest)
+        elif args_type == 'complex_args' or args_type == 'ca':
+            self.update_complex_args(rest)
+        else:
+            display('Invalid option. See help for usage.')
+
+    def update_module_args(self, arg):
+        """update module_args|ma [key1=value1 key2=value2 ...]
+Partially update module_args. If a key already exists, its value is replaced with new one.
+
+* To update key: value style arguments, use `update complex_args`.
+"""
+        module_args = self.task_info.module_args
+        try:
+            module_args_list = utils.split_args(module_args)
+            new_args_list = utils.split_args(arg)
+        except Exception as ex:
+            display('%s' % str(ex))
+            return
+
+        for new_arg in new_args_list:
+            new_arg_split = new_arg.split('=', 1)
+            if len(new_arg_split) <= 1:
+                display('skipped non key=value argument (%s)' % new_arg)
+                continue
+
+            new_arg_key = new_arg_split[0]
+            new_arg_value = new_arg_split[1]
+
+            replaced = False
+            for i, module_arg in enumerate(module_args_list):
+                module_arg_key = module_arg.split('=', 1)[0]
+                quoted = module_arg.startswith('"') and module_arg.endswith('"') or \
+                    module_arg.startswith("'") and module_arg.endswith("'")
+
+                if '=' in module_arg and not quoted and module_arg_key == new_arg_key:
+                    module_args_list[i] = '%s=%s' % (new_arg_key, new_arg_value)
+                    replaced = True
+                    break
+
+            if not replaced:
+                module_args_list.append('%s=%s' % (new_arg_key, new_arg_value))
+
+        self.task_info.module_args = ' '.join(module_args_list)
+        display('updated: %s' % (self.task_info.module_args))
+
+    def update_complex_args(self, arg):
+        pass
+
     def do_set(self, arg):
         """set module_args|complex_args key value
 Add or update the module's argument.

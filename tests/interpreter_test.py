@@ -247,6 +247,72 @@ class SimpleInterpreterTest(unittest.TestCase):
         self.assertIn(expect, mock_stdout.getvalue())
 
     @patch('sys.stdout', new_callable=StringIO)
+    def test_update_module_args_add_arg(self, mock_stdout):
+        module_args = 'key1=v1 key2=v2'
+        interpreter = Interpreter(TaskInfo('', module_args, None, None),
+                                  ErrorInfo(), None)
+        kv = 'key3=v3'
+        interpreter.do_update('module_args %s' % (kv))
+
+        expected_kv = '%s %s' % (module_args, kv)
+        self.assertEqual(expected_kv, interpreter.task_info.module_args)
+
+    @patch('sys.stdout', new_callable=StringIO)
+    def test_update_module_args_replace_arg(self, mock_stdout):
+        module_args = 'key1=v1 key2=v2'
+        interpreter = Interpreter(TaskInfo('', module_args, None, None),
+                                  ErrorInfo(), None)
+        kv = 'key1=v3'
+        interpreter.do_update('module_args %s' % (kv))
+
+        expected_kv = '%s key2=v2' % kv
+        self.assertEqual(expected_kv, interpreter.task_info.module_args)
+
+    @patch('sys.stdout', new_callable=StringIO)
+    def test_update_module_args_replace_quote_arg(self, mock_stdout):
+        module_args = 'key1="v1" key2=v2'
+        interpreter = Interpreter(TaskInfo('', module_args, None, None),
+                                  ErrorInfo(), None)
+        kv = 'key1="v3"'
+        interpreter.do_update('module_args %s' % (kv))
+
+        expected_kv = '%s key2=v2' % kv
+        self.assertEqual(expected_kv, interpreter.task_info.module_args)
+
+    @patch('sys.stdout', new_callable=StringIO)
+    def test_update_module_args_replace_template(self, mock_stdout):
+        module_args = 'key1={{ var1 }} key2=v2'
+        interpreter = Interpreter(TaskInfo('', module_args, None, None),
+                                  ErrorInfo(), None)
+        kv = 'key1={{ var3 }}'
+        interpreter.do_update('module_args %s' % (kv))
+
+        expected_kv = '%s key2=v2' % kv
+        self.assertEqual(expected_kv, interpreter.task_info.module_args)
+
+    @patch('sys.stdout', new_callable=StringIO)
+    def test_update_module_args_skip_quote(self, mock_stdout):
+        module_args = '"key1=v1" key2=v2'
+        interpreter = Interpreter(TaskInfo('', module_args, None, None),
+                                  ErrorInfo(), None)
+        kv = 'key1=v3'
+        interpreter.do_update('module_args %s' % (kv))
+
+        expected_kv = '%s %s' % (module_args, kv)
+        self.assertEqual(expected_kv, interpreter.task_info.module_args)
+
+    @patch('sys.stdout', new_callable=StringIO)
+    def test_update_module_args_ignore_nonkv(self, mock_stdout):
+        module_args = 'key1=v1 key2=v2'
+        interpreter = Interpreter(TaskInfo('', module_args, None, None),
+                                  ErrorInfo(), None)
+        arg = 'nonkv_args'
+        interpreter.do_update('module_args %s' % (arg))
+
+        expected_kv = '%s' % (module_args)  # should not include arg
+        self.assertEqual(expected_kv, interpreter.task_info.module_args)
+
+    @patch('sys.stdout', new_callable=StringIO)
     def test_set_module_args_add(self, mock_stdout):
         module_args = 'key1=v1 key2=v2'
         interpreter = Interpreter(TaskInfo('', module_args, None, None),
