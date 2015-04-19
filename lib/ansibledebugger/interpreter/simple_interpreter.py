@@ -217,7 +217,7 @@ Replace complex_args with new args in YAML.
             return
 
         if arg is None:
-            # arg_yaml is effectively empty
+            # In ansible, empty complex_args becomes {}
             arg = {}
 
         if not isinstance(arg, dict):
@@ -268,6 +268,7 @@ Partially update module_args or complex_args.
         """update module_args|ma [key1=value1 key2=value2 ...]
 Partially update module_args. If a key already exists, its value is replaced with new one.
 
+* To totally replace module_args, use `assign module_args`.
 * To update key: value style arguments, use `update complex_args`.
 """
         module_args = self.task_info.module_args
@@ -305,7 +306,59 @@ Partially update module_args. If a key already exists, its value is replaced wit
         display('updated: %s' % (self.task_info.module_args))
 
     def update_complex_args(self, arg):
-        pass
+        arg_rest = Interpreter.input_multiline(self.prompt_continuous)
+        if arg_rest is None:
+            display('cancelled')
+            return
+
+        arg_split = arg.split(':', 1)
+        key = arg_split[0]
+        if len(arg_split) >= 2:
+            value_yaml = arg_split[1].lstrip() + arg_rest
+        else:
+            value_yaml = arg_rest
+
+        key_list = Interpreter.dot_str_to_key_list(key)
+        if key_list is None or key_list == []:
+            display('Failed to interpret the key (%s)' % key)
+            return
+
+        try:
+            value = ansible.utils.parse_yaml(value_yaml)
+        except yaml.YAMLError as ex:
+            display('Failed to parse YAML: %s' % ex)
+            return
+
+        curr = self.task_info.complex_args
+        for key, expected_type in key_list[:-1]:
+            if expected_type == dict and isinstance(curr, dict) and key in curr:
+                curr = curr[key]
+            elif expected_type == list and isinstance(curr, list) and key < len(curr):
+                curr = curr[key]
+            else:
+                display('Invalid key: %s' % key)
+                return
+
+        last_key = key_list[-1]
+        last_key_name = last_key[0]
+        last_key_type = last_key[1]
+        if last_key_type == dict and isinstance(curr, dict):
+            curr[last_key_name] = value
+
+        elif last_key_type == list and isinstance(curr, list):
+            if last_key_name < len(curr):
+                curr[last_key_name] = value
+            elif last_key_name == len(curr):
+                curr.append(value)
+            else:
+                display('Invalid key: %s' % key)
+                return
+
+        else:
+            display('Invalid key: %s' % last_key_name)
+            return
+
+        display('updated')
 
     def do_set(self, arg):
         """set module_args|complex_args key value
