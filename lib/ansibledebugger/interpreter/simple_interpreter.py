@@ -201,7 +201,8 @@ Replace module_args with new key=value style arguments.
         """assign complex_args|ca [args in YAML]
 Replace complex_args with new args in YAML.
 
-* Args are expected to be multiline. Enter an empty line to show the end of args.
+* New args in YAML are expected to be multiline. Enter an empty line to show
+  the end of input.
 * To replace key=value style arguments, use `assign module_args`.
 """
         arg_rest = Interpreter.input_multiline(self.prompt_continuous)
@@ -306,6 +307,15 @@ Partially update module_args. If a key already exists, its value is replaced wit
         display('updated: %s' % (self.task_info.module_args))
 
     def update_complex_args(self, arg):
+        """update complex_args|ca key: [value in YAML]
+Partially update complex_args. If a key already exists, its value is replaced with new one.
+
+* New value in YAML is expected to be multiline. Enter an empty line to show
+  the end of input.
+* complex_args may contain list and/or dict. Use [] and . in a *key* to specify
+  the content of these structures.
+* To totally replace complex_args, use `assign complex_args`.
+"""
         arg_rest = Interpreter.input_multiline(self.prompt_continuous)
         if arg_rest is None:
             display('cancelled')
@@ -360,6 +370,16 @@ Partially update module_args. If a key already exists, its value is replaced wit
 
         display('updated')
 
+    def help_update_module_args(self):
+        display(self.update_module_args.__doc__)
+
+    help_update_ma = help_update_module_args
+
+    def help_update_complex_args(self):
+        display(self.update_complex_args.__doc__)
+
+    help_update_ca = help_update_complex_args
+
     def do_set(self, arg):
         """set module_args|complex_args key value
 Add or update the module's argument.
@@ -368,7 +388,8 @@ If the first argument is `module_args`, *key* and *value* are added to module_ar
 
 If `complex_args`, *key* and *value* are added to complex_args.
 
-As the special case, if the *key* is `.`, the entire arguments are replaced with *value*.
+As the special case, if the *key* is `.`, the entire arguments are replaced
+with *value*.
 """
         if arg is None or arg == '' or len(arg.split()) < 2:
             display('Invalid option. See help for usage.')
