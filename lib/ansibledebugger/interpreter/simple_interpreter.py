@@ -9,6 +9,7 @@ import sys
 import yaml
 
 import ansible.utils  # unused, but necessary to avoid circular imports
+from ansible import errors
 from ansible.utils import template
 from ansible.callbacks import display
 from ansible.playbook.task import Task
@@ -215,6 +216,10 @@ Replace complex_args with new args in YAML.
         arg_yaml = arg_first + arg_rest
         try:
             arg = ansible.utils.parse_yaml(arg_yaml)
+        except errors.AnsibleError as ex:
+            display('Failed to parse %s' % (arg_yaml))
+            display('%s' % (ex))
+            return
         except yaml.YAMLError as ex:
             display('Failed to parse YAML: %s' % ex)
             return
@@ -339,6 +344,10 @@ Partially update complex_args. If a key already exists, its value is replaced wi
 
         try:
             value = ansible.utils.parse_yaml(value_yaml)
+        except errors.AnsibleError as ex:
+            display('Failed to parse %s' % (value_yaml))
+            display('%s' % (ex))
+            return
         except yaml.YAMLError as ex:
             display('Failed to parse YAML: %s' % ex)
             return
