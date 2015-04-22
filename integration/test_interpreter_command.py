@@ -17,34 +17,31 @@ class WrongModuleArgsCaseTest(unittest.TestCase):
     def tearDown(self):
         self.proc.expect(pexpect.EOF)
 
-    def test_del_module_args_and_redo(self):
+    def test_update_module_args(self):
         self.proc.sendline('del module_args invalid_arg')
+        self.proc.expect('(Apdb)')
+
+        self.proc.sendline('update module_args data=value')
         self.proc.expect('(Apdb)')
 
         self.proc.sendline('redo')
-        self.proc.expect('ok:')
+        self.proc.expect('"ping": "value"')
 
-    def test_set_module_args(self):
-        self.proc.sendline('del module_args invalid_arg')
-        self.proc.expect('(Apdb)')
-
-        self.proc.sendline('set module_args data value')
+    def test_assign_module_args(self):
+        self.proc.sendline('assign module_args data=value')
         self.proc.expect('(Apdb)')
 
         self.proc.sendline('redo')
         self.proc.expect('"ping": "value"')
 
     def test_continue(self):
-        self.proc.sendline('del module_args invalid_arg')
+        self.proc.sendline('assign module_args')
         self.proc.expect('(Apdb)')
 
         self.proc.sendline('continue')
         self.proc.expect('FATAL')
 
     def test_quit(self):
-        self.proc.sendline('del module_args invalid_arg')
-        self.proc.expect('(Apdb)')
-
         self.proc.sendline('quit')
         self.proc.expect('abort')
 
@@ -60,18 +57,20 @@ class WrongComplexArgsCaseTest(unittest.TestCase):
     def tearDown(self):
         self.proc.expect(pexpect.EOF)
 
-    def test_del_complex_args_and_redo(self):
+    def test_update_complex_args(self):
         self.proc.sendline('del complex_args invalid_arg')
+        self.proc.expect('(Apdb)')
+
+        self.proc.sendline('update complex_args data: value')
+        self.proc.sendline('')
         self.proc.expect('(Apdb)')
 
         self.proc.sendline('redo')
         self.proc.expect('ok:')
 
-    def test_set_complex_args(self):
-        self.proc.sendline('del complex_args invalid_arg')
-        self.proc.expect('(Apdb)')
-
-        self.proc.sendline('set complex_args data value')
+    def test_assign_complex_args(self):
+        self.proc.sendline('assign complex_args data: value')
+        self.proc.sendline('')
         self.proc.expect('(Apdb)')
 
         self.proc.sendline('redo')
@@ -89,28 +88,30 @@ class WrongTemplateCaseTest(unittest.TestCase):
     def tearDown(self):
         self.proc.expect(pexpect.EOF)
 
-    def test_set_module_args_and_redo(self):
-        self.proc.sendline('set module_args data {{ var1 }}')
+    def test_update_module_args(self):
+        self.proc.sendline('update module_args data={{ var1 }}')
         self.proc.expect('(Apdb)')
 
         self.proc.sendline('redo')
         self.proc.expect('"ping": "value1"')
 
-    def test_del_module_args_set_complex_args_and_redo(self):
-        self.proc.sendline('del module_args .')
+    def test_update_complex_args(self):
+        self.proc.sendline('assign module_args')
         self.proc.expect('(Apdb)')
 
-        self.proc.sendline('set complex_args data {{ var1 }}')
+        self.proc.sendline('update complex_args data: "{{ var1 }}"')
+        self.proc.sendline('')
         self.proc.expect('(Apdb)')
 
         self.proc.sendline('redo')
         self.proc.expect('"ping": "value1"')
 
     def test_set_dict_var_to_complex_args(self):
-        self.proc.sendline('del module_args .')
+        self.proc.sendline('assign module_args')
         self.proc.expect('(Apdb)')
 
-        self.proc.sendline('set complex_args . {"data": "{{ var2 }}"}')
+        self.proc.sendline('update complex_args data: "{{ var2 }}"')
+        self.proc.sendline('')
         self.proc.expect('(Apdb)')
 
         self.proc.sendline('redo')
@@ -128,10 +129,10 @@ class MultihostInvalidArgsCaseTest(unittest.TestCase):
     def tearDown(self):
         self.proc.expect(pexpect.EOF)
 
-    def test_del_module_args(self):
+    def test_assign_module_args(self):
         num_hosts = 2
         for x in xrange(num_hosts):
-            self.proc.sendline('del module_args .')
+            self.proc.sendline('assign module_args')
             self.proc.expect('(Apdb)')
 
             self.proc.sendline('redo')
@@ -149,10 +150,10 @@ class MultihostWrongTemplateCaseTest(unittest.TestCase):
     def tearDown(self):
         self.proc.expect(pexpect.EOF)
 
-    def test_set_module_args(self):
+    def test_update_module_args(self):
         num_hosts = 2
         for x in xrange(num_hosts):
-            self.proc.sendline('set module_args data {{ var1 }}')
+            self.proc.sendline('update module_args data={{ var1 }}')
             self.proc.expect('(Apdb)')
 
             self.proc.sendline('redo')
