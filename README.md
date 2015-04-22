@@ -142,7 +142,7 @@ Re-execute the task, and, if no error, run the remaining part of the playbook.
 
 If the debugger is invoked due to a breakpoint, it simply does the first-run of the task.
 
-### c(cont(inue))
+### c(ont(inue))
 
 Continue without the re-execution of the task.
 
