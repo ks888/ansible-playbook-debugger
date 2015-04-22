@@ -188,6 +188,8 @@ Replace module_args or complex_args with new values.
         else:
             display('Invalid option. See help for usage.')
 
+    do_a = do_assign
+
     def assign_module_args(self, arg):
         """assign module_args|ma [key1=value1 key2=value2 ...]
 Replace module_args with new key=value style arguments.
@@ -264,6 +266,8 @@ Partially update module_args or complex_args.
             self.update_complex_args(rest)
         else:
             display('Invalid option. See help for usage.')
+
+    do_u = do_update
 
     def update_module_args(self, arg):
         """update module_args|ma [key1=value1 key2=value2 ...]
