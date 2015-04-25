@@ -23,7 +23,7 @@ setup(
     version=__version__,
     description='Debugger for Ansible Playbook',
     long_description="""
-ansible-playbook-debugger is the tool to debug a playook. This debugger is
+ansible-playbook-debugger is the tool to debug a playbook. This debugger is
 invoked when the task in the playbook fails, and enables you to check actually
 used module's args, variables, facts, and so on. Also, you can fix module's args
 in the debugger, and re-run the failed task (and if it is successful, the
