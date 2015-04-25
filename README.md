@@ -164,7 +164,7 @@ See [this example](https://github.com/ks888/ansible-playbook-debugger/blob/maste
 
 As the special case, if the *key* is `.`, the entire arguments are replaced with *value*.
 
-### del *module_args|complex_args key*
+### del *module_args|ma|complex_args|ca key*
 
 Delete the *key* (and its value) of *module_args* or *complex_args*.
 

@@ -507,7 +507,7 @@ with *value*.
         display('updated: %s' % (str(self.task_info.complex_args)))
 
     def do_del(self, arg):
-        """del module_args|complex_args key
+        """del module_args|ma|complex_args|ca key
 Delete the argument of the module. The usage is almost same
 as set command.
 """
@@ -519,9 +519,9 @@ as set command.
         target = arg_split[0]
         key = arg_split[1]
 
-        if target == 'module_args':
+        if target == 'module_args' or target == 'ma':
             self.del_module_args(key)
-        elif target == 'complex_args':
+        elif target == 'complex_args' or target == 'ca':
             self.del_complex_args(key)
         else:
             display('Invalid option. See help for usage.')
