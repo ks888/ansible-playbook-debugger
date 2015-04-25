@@ -24,6 +24,10 @@ In the example below, the debugger is invoked since a module's argument has unde
     - name: ping with wrong template
       ping: data={{ wrong_var }}
 
+~/src/ansible-playbook-debugger-demo% cat inventory 
+[local]
+testhost ansible_ssh_host=127.0.0.1 ansible_connection=local
+
 ~/src/ansible-playbook-debugger-demo% ansible-playbook-debugger demo3.yml -i inventory -vv
 
 PLAY [local] ******************************************************************
@@ -36,32 +40,43 @@ data: None
 comm_ok: None
 exception: One or more undefined variables: 'wrong_var' is undefined
 (Apdb) list
-task name       : wrong variable
-module name     : ping
-module args     : data={{ wrong_var }}
-complex args    : {}
-keyword         : register:None, delegate_to:None, ignore_errors:False, environment:{}, changed_when:None, failed_when:None, always_run:False
-hostname        : testhost
-actual host     :
-groups          : local
+task name    : wrong variable
+module name  : ping
+module args  : data={{ wrong_var }}
+complex args : 
+keyword      : 
+  always_run: 'False'
+  changed_when: ''
+  delegate_to: ''
+  environment: {}
+  failed_when: ''
+  ignore_errors: 'False'
+  register: ''
+hostname     : testhost
+actual host  : 
+groups       : local
 (Apdb) print var1
 value1
-(Apdb) set module_args data {{ var1 }}
+(Apdb) update module_args data={{ var1 }}
 updated: data={{ var1 }}
 (Apdb) list
-task name       : wrong variable
-module name     : ping
-module args     : data={{ var1 }}
-complex args    : {}
-keyword         : register:None, delegate_to:None, ignore_errors:False, environment:{}, changed_when:None, failed_when:None, always_run:False
-hostname        : testhost
-actual host     : 
-groups          : local
+task name    : wrong variable
+module name  : ping
+module args  : data={{ var1 }}
+complex args : 
+keyword      : 
+  always_run: 'False'
+  changed_when: ''
+  delegate_to: ''
+  environment: {}
+  failed_when: ''
+  ignore_errors: 'False'
+  register: ''
+hostname     : testhost
+actual host  :
+groups       : local
 (Apdb) redo
 <127.0.0.1> REMOTE_MODULE ping data=value1
-<127.0.0.1> EXEC ['/bin/sh', '-c', 'mkdir -p $HOME/.ansible/tmp/ansible-tmp-1428721740.66-54689905445032 && chmod a+rx $HOME/.ansible/tmp/ansible-tmp-1428721740.66-54689905445032 && echo $HOME/.ansible/tmp/ansible-tmp-1428721740.66-54689905445032']
-<127.0.0.1> PUT /tmp/tmpNTv5hy TO /home/yagami/.ansible/tmp/ansible-tmp-1428721740.66-54689905445032/ping
-<127.0.0.1> EXEC ['/bin/sh', '-c', u'LANG=en_US.UTF-8 LC_CTYPE=en_US.UTF-8 /usr/bin/python /home/yagami/.ansible/tmp/ansible-tmp-1428721740.66-54689905445032/ping; rm -rf /home/yagami/.ansible/tmp/ansible-tmp-1428721740.66-54689905445032/ >/dev/null 2>&1']
 ok: [testhost] => {"changed": false, "ping": "value1"}
 
 PLAY RECAP ********************************************************************
@@ -97,15 +112,15 @@ TASK: [somehow fail here] *****************************************************
 failed: [testhost] => {"failed": true}
 msg: Failed as requested from task
 Playbook debugger is invoked (the task returned with a "failed" flag)
-(Apdb) p var_in_pb
+(Apdb) print var_in_pb
 value
-(Apdb) p ansible_hostname
+(Apdb) print ansible_hostname
 yagami-ThinkPad-X230
-(Apdb) p ansible_all_ipv4_addresses
-[u'192.168.0.6', u'192.168.42.158']
-(Apdb) q
+(Apdb) print ansible_all_ipv4_addresses
+- 192.168.0.6
+- 192.168.42.222
+(Apdb) quit
 aborted
-
 ~/src/ansible-playbook-debugger-demo% 
 ```
 
@@ -126,10 +141,6 @@ In this example, an argument to ping module is invalid. So the entire arguments 
     - name: ping again
       ping:
 
-~/src/ansible-playbook-debugger-demo% cat inventory 
-[local]
-testhost ansible_ssh_host=127.0.0.1 ansible_connection=local
-
 ~/src/ansible-playbook-debugger-demo% ansible-playbook-debugger -i inventory demo1.yml -vv
 
 PLAY [local] ******************************************************************
@@ -139,32 +150,47 @@ TASK: [ping with invalid module arg] ******************************************
 failed: [testhost] => {"failed": true}
 msg: unsupported parameter for module: invalid_args
 Playbook debugger is invoked (the task returned with a "failed" flag)
-(Apdb) e
+(Apdb) error
 reason: the task returned with a "failed" flag
-data: {u'msg': u'unsupported parameter for module: invalid_args', u'failed': True, 'invocation': {'module_name': u'ping', 'module_args': u'invalid_args=v'}}
+data: {u'msg': u'unsupported parameter for module: invalid_args', u'failed': True, 'invocation': {'module_name': u'ping', 'module_args': u'inval
+id_args=v'}}
 comm_ok: True
 exception: None
-(Apdb) l
-task name       : ping with invalid module arg
-module name     : ping
-module args     : invalid_args=v
-complex args    : {}
-keyword         : register:None, delegate_to:None, ignore_errors:False, environment:{}, changed_when:None, failed_when:None, always_run:False
-hostname        : testhost
-actual host     : 127.0.0.1
-groups          : local
-(Apdb) set module_args . data=v
-updated: data=v
-(Apdb) l
-task name       : ping with invalid module arg
-module name     : ping
-module args     : data=v
-complex args    : {}
-keyword         : register:None, delegate_to:None, ignore_errors:False, environment:{}, changed_when:None, failed_when:None, always_run:False
-hostname        : testhost
-actual host     : 127.0.0.1
-groups          : local
-(Apdb) r
+(Apdb) list
+task name    : ping with invalid module arg
+module name  : ping
+module args  : invalid_args=v
+complex args :
+keyword      :
+  always_run: 'False'
+  changed_when: ''
+  delegate_to: ''
+  environment: {}
+  failed_when: ''
+  ignore_errors: 'False'
+  register: ''
+hostname     : testhost
+actual host  : 127.0.0.1
+groups       : local
+(Apdb) assign module_args data=v
+assigned: data=v
+(Apdb) list
+task name    : ping with invalid module arg
+module name  : ping
+module args  : data=v
+complex args : 
+keyword      : 
+  always_run: 'False'
+  changed_when: ''
+  delegate_to: ''
+  environment: {}
+  failed_when: ''
+  ignore_errors: 'False'
+  register: ''
+hostname     : testhost
+actual host  : 127.0.0.1
+groups       : local
+(Apdb) redo
 <127.0.0.1> REMOTE_MODULE ping data=v
 ok: [testhost] => {"changed": false, "ping": "v"}
 
@@ -187,7 +213,7 @@ The playbook below describes this point.
 
 ```bash
 ---
-p- hosts: local
+- hosts: local
   gather_facts: no
   tasks:
     - name: key1 and key2 are module_args
@@ -231,31 +257,48 @@ PLAY [local] ******************************************************************
 
 TASK: [ping with invalid complex arg] *****************************************
 Playbook debugger is invoked (AnsibleUndefinedVariable)
-(Apdb) e
+(Apdb) error
 reason: AnsibleUndefinedVariable
 data: None
 comm_ok: None
 exception: One or more undefined variables: 'var2' is undefined
-(Apdb) l
-task name       : ping with invalid complex arg
-module name     : ping
-module args     :
-complex args    : {'data': '{{ var2 }}'}
-keyword         : register:None, delegate_to:None, ignore_errors:False, environment:{}, changed_when:None, failed_when:None, always_run:False
-hostname        : testhost
-actual host     :
-groups          : local
-(Apdb) set complex_args data {{ var1 }}
-updated: {'data': '{{ var1 }}'}
-(Apdb) l
-task name       : ping with invalid complex arg
-module name     : ping
-module args     :
-complex args    : {'data': '{{ var1 }}'}
-keyword         : register:None, delegate_to:None, ignore_errors:False, environment:{}, changed_when:None, failed_when:None, always_run:False
-hostname        : testhost
-actual host     :
-groups          : local
+(Apdb) list
+task name    : ping with invalid complex arg
+module name  : ping
+module args  :
+complex args :
+  data: '{{ var2 }}'
+keyword      : 
+  always_run: 'False'
+  changed_when: ''
+  delegate_to: ''
+  environment: {}
+  failed_when: ''
+  ignore_errors: 'False'
+  register: ''
+hostname     : testhost
+actual host  : 
+groups       : local
+(Apdb) update complex_args data: '{{ var1 }}'
+> 
+updated
+(Apdb) list
+task name    : ping with invalid complex arg
+module name  : ping
+module args  : 
+complex args : 
+  data: '{{ var1 }}'
+keyword      :
+  always_run: 'False'
+  changed_when: ''
+  delegate_to: ''
+  environment: {}
+  failed_when: ''
+  ignore_errors: 'False'
+  register: ''
+hostname     : testhost
+actual host  :
+groups       : local
 (Apdb) redo
 <127.0.0.1> REMOTE_MODULE ping data=v
 ok: [testhost] => {"changed": false, "ping": "v"}
@@ -269,7 +312,7 @@ testhost                   : ok=1    changed=0    unreachable=0    failed=0
 <a name="example5"/>
 ## Set breakpoints
 
-You can set breakpoints using the command line option. With this option, the debugger is invoked before running the task you specified. It will be useful when a result is not right even though `ansible-playbook` command ends as successful.
+You can set breakpoints using the command line option. With this option, the debugger is invoked before running the task you specified.
 
 The example below checks the variable in the breakpoint task.
 
@@ -342,22 +385,24 @@ failed: [testhost] => {"failed": true}
 msg: Failed as requested from task
 Playbook debugger is invoked (the task returned with a "failed" flag)
 (Apdb) print hostvars['testhost']['ansible_wlan0']['ipv4']
-{u'netmask': u'255.255.255.0', u'network': u'192.168.0.0', u'address': u'192.168.0.6'}
-(Apdb) pp hostvars['testhost']['ansible_wlan0']['ipv4']
-{u'address': u'192.168.0.6',
- u'netmask': u'255.255.255.0',
- u'network': u'192.168.0.0'}
-(Apdb) p groups
-{'ungrouped': [], 'all': ['testhost'], 'local': ['testhost']}
-(Apdb) pp hostvars[groups['all'][0]]['ansible_wlan0']['ipv4']
-{u'address': u'192.168.0.6',
- u'netmask': u'255.255.255.0',
- u'network': u'192.168.0.0'}
-(Apdb) p group_names
-['local']
-(Apdb) p inventory_hostname
+address: 192.168.0.6
+netmask: 255.255.255.0
+network: 192.168.0.0
+(Apdb) print groups
+all:
+- testhost
+local:
+- testhost
+ungrouped: []
+(Apdb) print hostvars[groups['all'][0]]['ansible_wlan0']['ipv4']
+address: 192.168.0.6
+netmask: 255.255.255.0
+network: 192.168.0.0
+(Apdb) print group_names
+- local
+(Apdb) print inventory_hostname
 testhost
-(Apdb) q
+(Apdb) quit
 aborted
 ~/src/ansible-playbook-debugger-demo% 
 ```

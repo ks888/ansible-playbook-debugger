@@ -30,12 +30,14 @@ reason: AnsibleUndefinedVariable
 data: None
 comm_ok: None
 exception: One or more undefined variables: 'wrong_var' is undefined
+(Apdb) print module_args
+data={{ wrong_var }}
 (Apdb) print wrong_var
 Not defined
 (Apdb) print var1
 value1
-(Apdb) set module_args data {{ var1 }}
-updated: data={{ var1 }}
+(Apdb) assign module_args data={{ var1 }}
+assigned: data={{ var1 }}
 (Apdb) print module_args
 data={{ var1 }}
 (Apdb) redo
@@ -44,7 +46,6 @@ ok: [testhost] => {"changed": false, "ping": "value1"}
 
 PLAY RECAP ******************************************************************** 
 testhost                   : ok=1    changed=0    unreachable=0    failed=0   
-
 ~/src/ansible-playbook-debugger-demo% 
 ```
 
@@ -73,9 +74,10 @@ In this case, any changes to the source code will be reflected immediately.
 
 2. When the debugger is invoked, issue commands for debug. Frequently used commands are:
   * `error` or `e` command to check an error.
-  * `list` or `l` command to check the details of a failed task, including the module's arguments.
+  * `list` or `l` command to check the details of a failed task, including a module's arguments.
   * `print variable` or `p variable` command to print a variable.
-  * `set` command to add or update a module's argument.
+  * `assign` command to replace a module's arguments.
+  * `update` command to partially update a module's arguments.
   * `redo` or `r` command to re-execute a task.
   * `quit` or `q` command to quit from the debugger.
 
@@ -113,8 +115,8 @@ Print variable *arg*.
 There are some special cases:
 * With no argument, print all variables.
 * If *arg* is `module_name`, print the module name.
-* If `module_args`, print the key=value style arguments (module_args) of the module.
-* If `complex_args`, print the key: value style arguments (complex_args) of the module.
+* If `module_args` or `ma`, print the key=value style arguments (module_args) of the module.
+* If `complex_args` or `ca`, print the key: value style arguments (complex_args) of the module.
 
 See [this example](https://github.com/ks888/ansible-playbook-debugger/blob/master/EXAMPLES.md#example4) to know the difference between module_args and complex_args.
 
@@ -122,7 +124,37 @@ See [this example](https://github.com/ks888/ansible-playbook-debugger/blob/maste
 
 Same as print command, but output is pretty printed.
 
+### a(ssign) *module_args|ma [key1=value1 key2=value2 ...]*
+
+Replace module_args with new key=value pairs.
+
+### a(ssign) *complex_args|ca [args in YAML]*
+
+Replace complex_args with new args.
+
+* *args in YAML* are expected to be multiline. Enter an empty line to show the end of input.
+* See [this example](https://github.com/ks888/ansible-playbook-debugger/blob/master/EXAMPLES.md#example4) to know the difference between module_args and complex_args.
+
+### u(pdate) *module_args|ma [key1=value1 key2=value2 ...]*
+
+Partially update module_args.
+
+### u(pdate) *complex_args|ca key: [value in YAML]*
+
+Partially update complex_args.
+
+* *value in YAML* is expected to be multiline. Enter an empty line to show the end of input.
+* complex_args may contain list or dict. If you want to update the content of these structures, use [ ] and . in a *key*. For example, `update complex_args k1.k2[0]: v2` replaces v1 in the complex_args below with v2.
+```yaml
+  k1:
+    k2:
+    - v1
+```
+* See [this example](https://github.com/ks888/ansible-playbook-debugger/blob/master/EXAMPLES.md#example4) to know the difference between module_args and complex_args.
+
 ### set *module_args*|*complex_args* *key* *value*
+
+*Deprecated. Use assign or update commands instead. With these commands, you can update a module's arguments using formats such as key=value and key: value (just like you do in a playbook).*
 
 Add or update a module's argument.
 
@@ -132,9 +164,9 @@ See [this example](https://github.com/ks888/ansible-playbook-debugger/blob/maste
 
 As the special case, if the *key* is `.`, the entire arguments are replaced with *value*.
 
-### del *module_args*|*complex_args* *key*
+### del *module_args|complex_args key*
 
-Delete the argument of the module. The usage is almost same as set command.
+Delete the *key* (and its value) of *module_args* or *complex_args*.
 
 ### r(edo)
 

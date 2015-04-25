@@ -193,7 +193,7 @@ Replace module_args or complex_args with new values.
 
     def assign_module_args(self, arg):
         """assign module_args|ma [key1=value1 key2=value2 ...]
-Replace module_args with new key=value style arguments.
+Replace module_args with new key=value pairs.
 
 * To replace key: value style arguments, use `assign complex_args`.
 """
@@ -204,7 +204,7 @@ Replace module_args with new key=value style arguments.
         """assign complex_args|ca [args in YAML]
 Replace complex_args with new args in YAML.
 
-* New args in YAML are expected to be multiline. Enter an empty line to show
+* *args in YAML* are expected to be multiline. Enter an empty line to show
   the end of input.
 * To replace key=value style arguments, use `assign module_args`.
 """
@@ -276,7 +276,7 @@ Partially update module_args or complex_args.
 
     def update_module_args(self, arg):
         """update module_args|ma [key1=value1 key2=value2 ...]
-Partially update module_args. If a key already exists, its value is replaced with new one.
+Partially update module_args.
 
 * To totally replace module_args, use `assign module_args`.
 * To update key: value style arguments, use `update complex_args`.
@@ -317,9 +317,9 @@ Partially update module_args. If a key already exists, its value is replaced wit
 
     def update_complex_args(self, arg):
         """update complex_args|ca key: [value in YAML]
-Partially update complex_args. If a key already exists, its value is replaced with new one.
+Partially update complex_args.
 
-* New value in YAML is expected to be multiline. Enter an empty line to show
+* *value in YAML* is expected to be multiline. Enter an empty line to show
   the end of input.
 * complex_args may contain list and/or dict. Use [] and . in a *key* to specify
   the content of these structures.
