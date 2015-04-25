@@ -4,9 +4,9 @@
 
 * Support assign command. It replaces module_args/complex_args
 * Support update command. It partially updates module_args/complex_args
-** `assign/update module_args` accepts key=value pairs format as new module_args
-** `assign/update complex_args` accepts YAML format as new complex_args
-** That is, you can update a module's args using same formats as playbook
+  * `assign/update module_args` accepts key=value pairs format as new module_args
+  * `assign/update complex_args` accepts YAML format as new complex_args
+  * That is, you can update a module's args using same formats as playbook
 * Fix docs so that the difference between module_args and complex_args is clear
 
 ## 0.2.2 - Jan 31, 2015
