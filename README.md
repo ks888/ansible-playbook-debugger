@@ -115,8 +115,8 @@ Print variable *arg*.
 There are some special cases:
 * With no argument, print all variables.
 * If *arg* is `module_name`, print the module name.
-* If `module_args` or `ma`, print the key=value style arguments (module_args) of the module.
-* If `complex_args` or `ca`, print the key: value style arguments (complex_args) of the module.
+* If `module_args`, print the key=value style arguments (module_args) of the module.
+* If `complex_args`, print the key: value style arguments (complex_args) of the module.
 
 See [this example](https://github.com/ks888/ansible-playbook-debugger/blob/master/EXAMPLES.md#example4) to know the difference between module_args and complex_args.
 
@@ -124,22 +124,22 @@ See [this example](https://github.com/ks888/ansible-playbook-debugger/blob/maste
 
 Same as print command, but output is pretty printed.
 
-### a(ssign) *module_args|ma [key1=value1 key2=value2 ...]*
+### a(ssign) *module_args [key1=value1 key2=value2 ...]*
 
 Replace module_args with new key=value pairs.
 
-### a(ssign) *complex_args|ca [args in YAML]*
+### a(ssign) *complex_args [args in YAML]*
 
 Replace complex_args with new args.
 
 * *args in YAML* are expected to be multiline. Enter an empty line to show the end of input.
 * See [this example](https://github.com/ks888/ansible-playbook-debugger/blob/master/EXAMPLES.md#example4) to know the difference between module_args and complex_args.
 
-### u(pdate) *module_args|ma [key1=value1 key2=value2 ...]*
+### u(pdate) *module_args [key1=value1 key2=value2 ...]*
 
 Partially update module_args.
 
-### u(pdate) *complex_args|ca key: [value in YAML]*
+### u(pdate) *complex_args key: [value in YAML]*
 
 Partially update complex_args.
 
@@ -152,7 +152,7 @@ Partially update complex_args.
 ```
 * See [this example](https://github.com/ks888/ansible-playbook-debugger/blob/master/EXAMPLES.md#example4) to know the difference between module_args and complex_args.
 
-### del *module_args|ma|complex_args|ca key*
+### del *module_args|complex_args key*
 
 Delete the *key* (and its value) of *module_args* or *complex_args*.
 
