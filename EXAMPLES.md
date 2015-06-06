@@ -4,7 +4,7 @@
 * [Fix the wrong argument of a module](#example1)
 * [Check variables and facts](#example2)
 * [Update the entire arguments of a module](#example3)
-* [Fix a wrong and complex argument](#example4)
+* [Fix a complex argument](#example4)
 * [Set breakpoints](#example5)
 * [Check magic variables (hostvars, groups, etc.)](#example6)
 
@@ -205,7 +205,7 @@ testhost                   : ok=2    changed=0    unreachable=0    failed=0
 ```
 
 <a name="example4"/>
-## Fix a wrong and complex argument
+## Fix a complex argument
 
 Ansible module has two types of arguments: module_args and complex_args. If you use key=value style to pass arguments, these are module_args. If you use key: value style, these are complex_args. It is used to represent complex structures like lists and dicts.
 

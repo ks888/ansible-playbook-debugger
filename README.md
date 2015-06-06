@@ -76,8 +76,8 @@ In this case, any changes to the source code will be reflected immediately.
   * `error` or `e` command to check an error.
   * `list` or `l` command to check the details of a failed task, including a module's arguments.
   * `print variable` or `p variable` command to print a variable.
-  * `assign` command to replace a module's arguments.
-  * `update` command to partially update a module's arguments.
+  * `assign` command to replace the entire arguments of a module.
+  * `update` command to update one key=value pair of a module.
   * `redo` or `r` command to re-execute a task.
   * `quit` or `q` command to quit from the debugger.
 
@@ -88,7 +88,6 @@ In this case, any changes to the source code will be reflected immediately.
 * [Fix the wrong argument of a module](https://github.com/ks888/ansible-playbook-debugger/blob/master/EXAMPLES.md#example1)
 * [Check variables and facts](https://github.com/ks888/ansible-playbook-debugger/blob/master/EXAMPLES.md#example2)
 * [Update the entire arguments of a module](https://github.com/ks888/ansible-playbook-debugger/blob/master/EXAMPLES.md#example3)
-* [Fix a wrong and complex argument](https://github.com/ks888/ansible-playbook-debugger/blob/master/EXAMPLES.md#example4)
 * [Set breakpoints](https://github.com/ks888/ansible-playbook-debugger/blob/master/EXAMPLES.md#example5)
 * [Check magic variables (hostvars, groups, etc.)](https://github.com/ks888/ansible-playbook-debugger/blob/master/EXAMPLES.md#example6)
 
@@ -118,8 +117,6 @@ There are some special cases:
 * If `module_args`, print the key=value style arguments (module_args) of the module.
 * If `complex_args`, print the key: value style arguments (complex_args) of the module.
 
-See [this example](https://github.com/ks888/ansible-playbook-debugger/blob/master/EXAMPLES.md#example4) to know the difference between module_args and complex_args.
-
 ### pp [*arg*]
 
 Same as print command, but output is pretty printed.
@@ -128,33 +125,13 @@ Same as print command, but output is pretty printed.
 
 Replace module_args with new key=value pairs.
 
-### a(ssign) *complex_args [args in YAML]*
+### u(pdate) *module_args [key1=value1]*
 
-Replace complex_args with new args.
+Update just one key=value pair, rather than replace the entire args.
 
-* *args in YAML* are expected to be multiline. Enter an empty line to show the end of input.
-* See [this example](https://github.com/ks888/ansible-playbook-debugger/blob/master/EXAMPLES.md#example4) to know the difference between module_args and complex_args.
+### del *module_args key*
 
-### u(pdate) *module_args [key1=value1 key2=value2 ...]*
-
-Partially update module_args.
-
-### u(pdate) *complex_args key: [value in YAML]*
-
-Partially update complex_args.
-
-* *value in YAML* is expected to be multiline. Enter an empty line to show the end of input.
-* complex_args may contain list or dict. If you want to update the content of these structures, use [ ] and . in a *key*. For example, `update complex_args k1.k2[0]: v2` replaces v1 in the complex_args below with v2.
-```yaml
-  k1:
-    k2:
-    - v1
-```
-* See [this example](https://github.com/ks888/ansible-playbook-debugger/blob/master/EXAMPLES.md#example4) to know the difference between module_args and complex_args.
-
-### del *module_args|complex_args key*
-
-Delete the *key* (and its value) of *module_args* or *complex_args*.
+Delete the *key* (and its value) of *module_args*.
 
 ### r(edo)
 
