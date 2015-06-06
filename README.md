@@ -152,18 +152,6 @@ Partially update complex_args.
 ```
 * See [this example](https://github.com/ks888/ansible-playbook-debugger/blob/master/EXAMPLES.md#example4) to know the difference between module_args and complex_args.
 
-### set *module_args*|*complex_args* *key* *value*
-
-*Deprecated. Use assign or update commands instead. With these commands, you can update a module's arguments using formats such as key=value and key: value (just like you do in a playbook).*
-
-Add or update a module's argument.
-
-If the first argument is `module_args`, *key* and *value* are added to module_args.
-If `complex_args`, *key* and *value* are added to complex_args.
-See [this example](https://github.com/ks888/ansible-playbook-debugger/blob/master/EXAMPLES.md#example4) to know the difference between module_args and complex_args.
-
-As the special case, if the *key* is `.`, the entire arguments are replaced with *value*.
-
 ### del *module_args|ma|complex_args|ca key*
 
 Delete the *key* (and its value) of *module_args* or *complex_args*.
