@@ -73,13 +73,10 @@ In this case, any changes to the source code will be reflected immediately.
   * As of v0.2.2, `--breakpoint TASK_NAME` option is supported. With this option, the debugger is invoked before running the task matching this name. See [EXAMPLES page](https://github.com/ks888/ansible-playbook-debugger/blob/master/EXAMPLES.md#example5) for details.
 
 2. When the debugger is invoked, issue commands for debug. Frequently used commands are:
-  * `error` command to check an error.
-  * `list` command to check the details of a failed task, including a module's arguments.
-  * `print variable` command to print a variable.
+  * `print` command to print a variable or a module's arguments.
   * `assign` command to replace the entire arguments of a module.
-  * `update` command to update one key=value pair of a module.
+  * `update` command to update one key=value argument of a module.
   * `redo` command to re-execute a task.
-  * `quit` command to quit from the debugger.
 
   See [Available Commands](#available-commands) to check the list of commands.
 
@@ -127,7 +124,7 @@ Replace module_args with new key=value pairs.
 
 ### u(pdate) *module_args [key1=value1]*
 
-Update just one key=value pair, rather than replace the entire args.
+Update one key=value argument of a module, rather than replace the entire args.
 
 ### del *module_args key*
 
