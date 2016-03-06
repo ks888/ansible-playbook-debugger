@@ -1,9 +1,0 @@
-- hosts: testhost
-  vars:
-    var1: value1
-  tasks:
-    - name: template module
-      # the module creates tmp directory in earlier stage
-      template: src=template.txt dest=./template_result.txt invalid_arg=
-      tags:
-        - template
