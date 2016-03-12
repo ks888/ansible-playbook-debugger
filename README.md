@@ -32,18 +32,32 @@ Run `ansible-playbook` command as usual. This debugger is invoked when the task 
 
 ## Available Commands
 
-### p *task/args/vars/host/result*
+### p *task/vars/host/result*
 
-print the several values used to execute a module. The example below shows the module's arguments:
+print values used to execute a module.
 
 ```
-(debug) p args
-{u'name': u'test'}
+(debug) p task
+TASK: install package
+(debug) p task.args
+{u'name': u'{{ pkg_name }}'}
+(debug) p vars
+{'ansible_current_hosts': [u'54.249.1.1'],
+ 'ansible_failed_hosts': [],
+ 'ansible_play_hosts': [u'54.249.1.1'],
+ ...
+ u'pkg_name': u'not_exist',
+ ...
+}
+(debug) p host
+54.249.1.1
+(debug) p result
+{'_ansible_no_log': False,
+ 'changed': False,
+ u'failed': True,
+ ...
+ u'msg': u"No package matching 'not_exist' is available"}
 ```
-
-### pp *task/args/vars/host/result*
-
-Same as print command, but output is pretty printed.
 
 ### q(uit)
 
