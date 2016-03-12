@@ -42,9 +42,9 @@ TASK: install package
 (debug) p task.args
 {u'name': u'{{ pkg_name }}'}
 (debug) p vars
-{'ansible_current_hosts': [u'54.249.1.1'],
- 'ansible_failed_hosts': [],
- 'ansible_play_hosts': [u'54.249.1.1'],
+{u'ansible_all_ipv4_addresses': [u'172.31.6.88'],
+ u'ansible_all_ipv6_addresses': [u'fe80::497:a8ff:fe70:d9'],
+ u'ansible_architecture': u'x86_64',
  ...
  u'pkg_name': u'not_exist',
  ...
