@@ -82,13 +82,6 @@ class Debugger(cmd.Cmd):
     def do_p(self, args):
         try:
             result = self.evaluate(args)
-            display.display(repr(result))
-        except:
-            pass
-
-    def do_pp(self, args):
-        try:
-            result = self.evaluate(args)
             display.display(pprint.pformat(result))
         except:
             pass
