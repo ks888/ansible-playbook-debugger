@@ -28,7 +28,7 @@ class StrategyModule(linear.StrategyModule, StrategyBase):
     def _process_pending_results(self, iterator, one_pass=False):
         results = super(StrategyModule, self)._process_pending_results(iterator, one_pass)
         if self._need_debug(results):
-            dbg = Debugger(results)
+            dbg = Debugger(self, results)
             dbg.cmdloop()
         return results
 
@@ -39,16 +39,16 @@ class Debugger(cmd.Cmd):
     prompt = '(debug) '  # debugger
     prompt_continuous = '> '  # multiple lines
 
-    def __init__(self, results):
+    def __init__(self, strategy_module, results):
         # cmd.Cmd is old-style class
         cmd.Cmd.__init__(self)
 
         self.intro = "Debugger invoked"
         self.scope = {}
-        self.scope['task'] = self.curr_task
-        self.scope['args'] = self.curr_task.args
-        self.scope['vars'] = self.curr_task_vars
-        self.scope['host'] = self.curr_host
+        self.scope['task'] = strategy_module.curr_task
+        self.scope['args'] = strategy_module.curr_task.args
+        self.scope['vars'] = strategy_module.curr_task_vars
+        self.scope['host'] = strategy_module.curr_host
         self.scope['result'] = results[0]._result
         self.scope['results'] = results  # for debug of this debugger
 
@@ -85,3 +85,6 @@ class Debugger(cmd.Cmd):
             display.display(pprint.pformat(result))
         except:
             pass
+
+    def default(self, line):
+        self.do_p(line)
