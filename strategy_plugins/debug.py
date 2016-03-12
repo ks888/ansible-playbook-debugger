@@ -46,7 +46,6 @@ class Debugger(cmd.Cmd):
         self.intro = "Debugger invoked"
         self.scope = {}
         self.scope['task'] = strategy_module.curr_task
-        self.scope['args'] = strategy_module.curr_task.args
         self.scope['vars'] = strategy_module.curr_task_vars
         self.scope['host'] = strategy_module.curr_host
         self.scope['result'] = results[0]._result
