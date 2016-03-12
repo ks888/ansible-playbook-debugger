@@ -17,6 +17,14 @@ class StrategyModule(linear.StrategyModule, StrategyBase):
     # Usually inheriting linear.StrategyModule is enough. However, StrategyBase class must be
     # direct ancestor to be considered as strategy plugin, and so we inherit the class here.
 
+    def _queue_task(self, host, task, task_vars, play_context):
+        self.curr_host = host
+        self.curr_task = task
+        self.curr_task_vars = task_vars
+        self.curr_play_context = play_context
+
+        StrategyBase._queue_task(self, host, task, task_vars, play_context)
+
     def _process_pending_results(self, iterator, one_pass=False):
         results = super(StrategyModule, self)._process_pending_results(iterator, one_pass)
         if self._need_debug(results):
@@ -37,12 +45,12 @@ class Debugger(cmd.Cmd):
 
         self.intro = "Debugger invoked"
         self.scope = {}
-        self.scope['results'] = results
-        self.scope['task'] = results[0]._task
-        self.scope['args'] = results[0]._task.args
-        self.scope['vars'] = results[0]._task.vars
-        self.scope['host'] = results[0]._host
+        self.scope['task'] = self.curr_task
+        self.scope['args'] = self.curr_task.args
+        self.scope['vars'] = self.curr_task_vars
+        self.scope['host'] = self.curr_host
         self.scope['result'] = results[0]._result
+        self.scope['results'] = results  # for debug of this debugger
 
     def cmdloop(self):
         try:
