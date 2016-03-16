@@ -59,6 +59,14 @@ TASK: install package
  u'msg': u"No package matching 'not_exist' is available"}
 ```
 
+### r(edo)
+
+Run the task again.
+
+### c(ontinue)
+
+Simply continue.
+
 ### q(uit)
 
 Quit from the debugger. The playbook execution is aborted.
