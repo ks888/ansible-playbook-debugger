@@ -121,5 +121,22 @@ class Debugger(cmd.Cmd):
         except:
             pass
 
+    def execute(self, args):
+        try:
+            code = compile(args + '\n', '<stdin>', 'single')
+            exec code in globals(), self.scope
+        except:
+            t, v = sys.exc_info()[:2]
+            if type(t) == type(''):
+                exc_type_name = t
+            else:
+                exc_type_name = t.__name__
+            display.display('***%s:%s' % (exc_type_name, repr(v)))
+            raise
+
     def default(self, line):
-        self.do_p(line)
+        try:
+            self.execute(line)
+            display.display(pprint.pformat(result))
+        except:
+            pass
