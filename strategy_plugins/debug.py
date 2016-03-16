@@ -27,6 +27,10 @@ class StrategyModule(linear.StrategyModule, StrategyBase):
     # Usually inheriting linear.StrategyModule is enough. However, StrategyBase class must be
     # direct ancestor to be considered as strategy plugin, and so we inherit the class here.
 
+    def __init__(self, tqm):
+        self.curr_tqm = tqm
+        StrategyBase.__init__(self, tqm)
+
     def _queue_task(self, host, task, task_vars, play_context):
         self.curr_host = host
         self.curr_task = task
@@ -36,6 +40,7 @@ class StrategyModule(linear.StrategyModule, StrategyBase):
         StrategyBase._queue_task(self, host, task, task_vars, play_context)
 
     def _process_pending_results(self, iterator, one_pass=False):
+        prev_host_state = iterator.get_host_state(self.curr_host)
         results = StrategyBase._process_pending_results(self, iterator, one_pass)
 
         while self._need_debug(results):
@@ -44,6 +49,15 @@ class StrategyModule(linear.StrategyModule, StrategyBase):
             dbg.cmdloop()
 
             if next_action.result == NextAction.REDO:
+                # rollback host state
+                self.curr_tqm.clear_failed_hosts()
+                iterator._host_states[self.curr_host.name] = prev_host_state
+                if reduce(lambda total, res : res.is_failed() or total, results, False):
+                    self._tqm._stats.failures[self.curr_host.name] -= 1
+                elif reduce(lambda total, res : res.is_unreachable() or total, results, False):
+                    self._tqm._stats.dark[self.curr_host.name] -= 1
+
+                # redo
                 StrategyBase._queue_task(self, self.curr_host, self.curr_task, self.curr_task_vars, self.curr_play_context)
                 results = StrategyBase._process_pending_results(self, iterator, one_pass)
             elif next_action.result == NextAction.CONTINUE:
