@@ -34,7 +34,7 @@ Run `ansible-playbook` command as usual. This debugger is invoked when the task 
 
 ### p *task/vars/host/result*
 
-print values used to execute a module.
+Print values used to execute a module.
 
 ```
 (debug) p task
@@ -47,6 +47,8 @@ TASK: install package
  u'ansible_architecture': u'x86_64',
  ...
 }
+(debug) p vars['pkg_name']
+u'bash'
 (debug) p host
 54.249.1.1
 (debug) p result
@@ -56,6 +58,49 @@ TASK: install package
  ...
  u'msg': u"No package matching 'not_exist' is available"}
 ```
+
+### *task/vars* = *value*
+
+Update task's argument, vars, and so on.
+
+If you run a playbook like this:
+
+```
+- hosts: test
+  strategy: debug
+  gather_facts: yes
+  vars:
+    pkg_name: not_exist
+  tasks:
+    - name: install package
+      apt: name={{ pkg_name }}
+```
+
+Debugger is invoked due to wrong package name, so let's fix the task's args:
+
+```
+(debug) p task.args
+{u'name': u'{{ pkg_name }}'}
+(debug) task.args['name'] = 'bash'
+(debug) p task.args
+{u'name': 'bash'}
+(debug) redo
+```
+
+Then the task runs again with new args.
+
+Here is another example with same playbook, but fix vars instead of args:
+
+```
+(debug) p vars['pkg_name']
+u'not_exist'
+(debug) vars['pkg_name'] = 'bash'
+(debug) p vars['pkg_name']
+'bash'
+(debug) redo
+```
+
+Then the task runs again with new vars.
 
 ### r(edo)
 
