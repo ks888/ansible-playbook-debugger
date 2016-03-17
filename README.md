@@ -46,8 +46,6 @@ TASK: install package
  u'ansible_all_ipv6_addresses': [u'fe80::497:a8ff:fe70:d9'],
  u'ansible_architecture': u'x86_64',
  ...
- u'pkg_name': u'not_exist',
- ...
 }
 (debug) p host
 54.249.1.1
