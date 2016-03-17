@@ -12,6 +12,8 @@ except ImportError:
     from ansible.utils.display import Display
     display = Display()
 
+__version__ = '0.3.0'
+
 
 class NextAction(object):
     """ The next action after an interpreter's exit. """
