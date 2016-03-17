@@ -1,8 +1,46 @@
 # ansible-playbook-debugger
 
-`ansible-playbook-debugger` is the tool to debug a playbook. This debugger is invoked when the task in the playbook fails, and enables you to check actually used module's args, variables, facts, and so on.
+`ansible-playbook-debugger` is the tool to debug a playbook. This debugger is invoked when the task in the playbook fails, and enables you to check useful debug info such as module's args, and variables. Also, you can change module's args in the debugger, and run the failed task again to make sure a bug is fixed.
 
-NOTE: the debugger in this branch does not support ansible v1.
+NOTE: the debugger in v0.3.0 or later does not support ansible v1. If you use ansible v1, the debugger's version should be [v0.2.3](https://github.com/ks888/ansible-playbook-debugger/tree/v0.2.3) or earlier.
+
+For example, let's run the playbook below:
+ executes ping module, but
+
+```bash
+- hosts: test
+  strategy: debug
+  gather_facts: no
+  vars:
+    var1: value1
+  tasks:
+    - name: wrong variable
+      ping: data={{ wrong_var }}
+```
+
+The debugger is invoked since *wrong_var* variable is undefined. Let's change the module's args, and run the task again.
+
+```bash
+$ ansible-playbook example1.yml -i inventory
+
+PLAY ***************************************************************************
+
+TASK [wrong variable] **********************************************************
+fatal: [54.249.1.1]: FAILED! => {"failed": true, "msg": "ERROR! 'wrong_var' is undefined"}
+Debugger invoked
+(debug) result
+{'msg': u"ERROR! 'wrong_var' is undefined", 'failed': True}
+(debug) p task.args
+{u'data': u'{{ wrong_var }}'}
+(debug) task.args['data'] = '{{ var1 }}'
+(debug) p task.args
+{u'data': '{{ var1 }}'}
+(debug) redo
+ok: [54.249.1.1]
+
+PLAY RECAP *********************************************************************
+54.249.1.1               : ok=1    changed=0    unreachable=0    failed=0
+```
 
 ## Installation
 
@@ -11,24 +49,24 @@ Make a `strategy_plugins` directory in your playbook directory, and put `debug.p
 ```
 mkdir strategy_plugins
 cd strategy_plugins
-wget https://raw.githubusercontent.com/ks888/ansible-playbook-debugger/support-ansible-v2/strategy_plugins/debug.py
+wget https://raw.githubusercontent.com/ks888/ansible-playbook-debugger/strategy_plugins/debug.py
 ```
 
 ### Setup
 
-Open your playbook, and change its strategy like this:
+Open your playbook, and add `strategy: debug` line like this:
 
 ```
 - hosts: all
   strategy: debug
-  tasks:
+  ...
 ```
 
 ## Usage
 
 ### Run
 
-Run `ansible-playbook` command as usual. This debugger is invoked when the task in the playbook fails. See [Available Commands](#available-commands) to check the debugger's commands.
+Run `ansible-playbook` command as usual. This debugger is invoked when the task in the playbook fails, and show `(debug)` prompt. See [Available Commands](#available-commands) to check the debugger's commands.
 
 ## Available Commands
 
