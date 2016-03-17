@@ -40,6 +40,9 @@ class StrategyModule(linear.StrategyModule, StrategyBase):
         StrategyBase._queue_task(self, host, task, task_vars, play_context)
 
     def _process_pending_results(self, iterator, one_pass=False):
+        if not hasattr(self, "curr_host"):
+            return StrategyBase._process_pending_results(self, iterator, one_pass)
+
         prev_host_state = iterator.get_host_state(self.curr_host)
         results = StrategyBase._process_pending_results(self, iterator, one_pass)
 
