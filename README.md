@@ -154,4 +154,4 @@ Quit from the debugger. The playbook execution is aborted.
 
 ## Contributing
 
-Contributions are very welcome, including bug reports, idea sharing, feature requests, and English correction of documents.
+Contributions are very welcome. Feel free to open an issue or create a pull request.
