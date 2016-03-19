@@ -50,7 +50,7 @@ Make a `strategy_plugins` directory in your playbook directory, and put `debug.p
 ```
 mkdir strategy_plugins
 cd strategy_plugins
-wget https://raw.githubusercontent.com/ks888/ansible-playbook-debugger/strategy_plugins/debug.py
+wget https://raw.githubusercontent.com/ks888/ansible-playbook-debugger/master/strategy_plugins/debug.py
 ```
 
 ### Setup
