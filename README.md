@@ -1,11 +1,10 @@
 # ansible-playbook-debugger
 
-`ansible-playbook-debugger` is the tool to debug a playbook. This debugger is invoked when the task in the playbook fails, and enables you to check useful debug info such as module's args, and variables. Also, you can change module's args in the debugger, and run the failed task again to make sure a bug is fixed.
+*ansible-playbook-debugger* is the tool to debug a playbook. This debugger is invoked when the task in the playbook fails, and enables you to check useful debug info such as module's args, and variables. Also, you can change module's args in the debugger, and run the failed task again to make sure a bug is fixed.
 
-NOTE: the debugger in v0.3.0 or later does not support ansible v1. If you use ansible v1, the debugger's version should be [v0.2.3](https://github.com/ks888/ansible-playbook-debugger/tree/v0.2.3) or earlier.
+NOTE: the debugger in v0.3.0 or later does not support ansible v1. If you use ansible v1, the debugger's version should be [v0.2.4 or earlier](https://github.com/ks888/ansible-playbook-debugger/tree/v0.2.4).
 
 For example, let's run the playbook below:
- executes ping module, but
 
 ```bash
 - hosts: test
@@ -28,7 +27,7 @@ PLAY ***************************************************************************
 TASK [wrong variable] **********************************************************
 fatal: [54.249.1.1]: FAILED! => {"failed": true, "msg": "ERROR! 'wrong_var' is undefined"}
 Debugger invoked
-(debug) result
+(debug) p result
 {'msg': u"ERROR! 'wrong_var' is undefined", 'failed': True}
 (debug) p task.args
 {u'data': u'{{ wrong_var }}'}
@@ -41,6 +40,8 @@ ok: [54.249.1.1]
 PLAY RECAP *********************************************************************
 54.249.1.1               : ok=1    changed=0    unreachable=0    failed=0
 ```
+
+This time, the task runs successfully!
 
 ## Installation
 
@@ -66,7 +67,7 @@ Open your playbook, and add `strategy: debug` line like this:
 
 ### Run
 
-Run `ansible-playbook` command as usual. This debugger is invoked when the task in the playbook fails, and show `(debug)` prompt. See [Available Commands](#available-commands) to check the debugger's commands.
+Run `ansible-playbook` command as usual. This debugger is invoked when the task in a playbook fails, and show `(debug)` prompt. See [Available Commands](#available-commands) to check the debugger's commands.
 
 ## Available Commands
 
@@ -97,9 +98,9 @@ u'bash'
  u'msg': u"No package matching 'not_exist' is available"}
 ```
 
-### *task/vars* = *value*
+### task.args[*key*] = *value*
 
-Update task's argument, vars, and so on.
+Update module's argument.
 
 If you run a playbook like this:
 
@@ -114,7 +115,7 @@ If you run a playbook like this:
       apt: name={{ pkg_name }}
 ```
 
-Debugger is invoked due to wrong package name, so let's fix the task's args:
+Debugger is invoked due to wrong package name, so let's fix the module's args:
 
 ```
 (debug) p task.args
@@ -127,7 +128,11 @@ Debugger is invoked due to wrong package name, so let's fix the task's args:
 
 Then the task runs again with new args.
 
-Here is another example with same playbook, but fix vars instead of args:
+### vars[*key*] = *value*
+
+Update vars.
+
+Let's use the same playbook above, but fix vars instead of args:
 
 ```
 (debug) p vars['pkg_name']
@@ -146,7 +151,7 @@ Run the task again.
 
 ### c(ontinue)
 
-Simply continue.
+Just continue.
 
 ### q(uit)
 
