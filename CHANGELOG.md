@@ -1,5 +1,10 @@
 # Changes
 
+## 0.3.0 - Mar 19, 2016
+
+* Support ansible v2, but ansible v1 is not supported anymore
+* Simplify commands. see README for more detail
+
 ## 0.2.4 - Mar 19, 2016
 
 * Show error message when ansible v2 is used
