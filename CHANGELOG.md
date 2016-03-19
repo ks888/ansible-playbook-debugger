@@ -1,5 +1,9 @@
 # Changes
 
+## 0.2.4 - Mar 19, 2016
+
+* Show error message when ansible v2 is used
+
 ## 0.2.3 - Apr 25, 2015
 
 * Support assign command. It replaces module_args/complex_args
