@@ -1,5 +1,7 @@
 # ansible-playbook-debugger
 
+**This tool is merged into Ansible v2.1! If you are using v2.1 or later, see [official usage documents](http://docs.ansible.com/ansible/playbooks_debugger.html).**
+
 *ansible-playbook-debugger* is the tool to debug a playbook. This debugger is invoked when the task in the playbook fails, and enables you to check useful debug info such as module's args, and variables. Also, you can change module's args in the debugger, and run the failed task again to make sure a bug is fixed.
 
 NOTE: the debugger in v0.3.0 or later does not support ansible v1. If you use ansible v1, the debugger's version should be [v0.2.4 or earlier](https://github.com/ks888/ansible-playbook-debugger/tree/v0.2.4).
